@@ -12,8 +12,9 @@ function download(blob: Blob, filename: string) {
 }
 
 export function toCsv(rows: Row[]): string {
-  if (!rows.length) return "";
-  const headers = Object.keys(rows[0]);
+  const first = rows[0];
+  if (!first) return "";
+  const headers = Object.keys(first);
   const esc = (v: unknown) => {
     const s = v == null ? "" : String(v);
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
@@ -47,8 +48,9 @@ export async function exportXlsx(
 }
 
 export async function copyTable(rows: Row[]) {
-  if (!rows.length) return;
-  const headers = Object.keys(rows[0]);
+  const first = rows[0];
+  if (!first) return;
+  const headers = Object.keys(first);
   const text = [
     headers.join("\t"),
     ...rows.map((r) => headers.map((h) => r[h] ?? "").join("\t")),

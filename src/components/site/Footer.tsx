@@ -36,11 +36,22 @@ export function Footer() {
     <footer className="mt-24 border-t border-border/60 bg-card/40">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-5">
         <div className="lg:col-span-2">
-          <div className="flex items-center gap-2.5">
-            <span className="grid size-9 place-items-center rounded-xl bg-primary/15 text-primary">
-              <Radio className="size-5" />
-            </span>
-            <span className="font-display text-lg font-semibold text-gradient">ENTEC</span>
+          <div className="flex items-center gap-3">
+            <div className="size-11 rounded-xl overflow-hidden p-0.5 bg-gradient-to-br from-cyan-500/30 via-primary/20 to-indigo-600/30 border border-cyan-400/40 shadow-[0_0_15px_rgba(6,182,212,0.25)] shrink-0">
+              <img
+                src="/entec-logo.jpg"
+                alt="ENTEC Logo"
+                className="w-full h-full object-cover rounded-[9px]"
+              />
+            </div>
+            <div>
+              <span className="font-display text-xl font-extrabold text-gradient block leading-none">
+                ENTEC
+              </span>
+              <span className="text-[10px] uppercase tracking-[0.2em] font-semibold text-cyan-400/90 block mt-1">
+                Phone Intelligence Hub
+              </span>
+            </div>
           </div>
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
             {t("tagline")} — authoritative NANP intelligence sourced from NANPA, the FCC, the
@@ -75,7 +86,7 @@ export function Footer() {
               {c.links.map((l) => (
                 <li key={l.label}>
                   <Link
-                    to={l.to}
+                    to={l.to as any}
                     className="text-sm text-muted-foreground transition-colors hover:text-primary"
                   >
                     {l.label}
