@@ -317,10 +317,16 @@ function expand(): AreaCode[] {
     }
   }
 
-  // Populate overlays
+  // Populate overlays: prioritize codes sharing the same rate centers / cities
   return preliminary.map((item) => {
-    const allInRegion = regionCodeMap.get(item.region) ?? [];
-    const overlays = allInRegion.filter((c) => c !== item.code);
+    const regionalCodes = preliminary.filter(
+      (p) => p.region === item.region && p.code !== item.code
+    );
+    const sharedCityCodes = regionalCodes
+      .filter((p) => p.cities.some((c) => item.cities.includes(c)))
+      .map((p) => p.code);
+
+    const overlays = sharedCityCodes.length > 0 ? sharedCityCodes : regionalCodes.map((p) => p.code);
     return {
       ...item,
       overlays,

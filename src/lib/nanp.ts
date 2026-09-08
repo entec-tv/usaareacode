@@ -107,7 +107,11 @@ export function isValidNanp(raw: string): boolean {
   return /^[2-9]\d{2}[2-9]\d{6}$/.test(d);
 }
 
-export function lookup(raw: string): LookupResult {
+export function lookup(
+  raw: string,
+  customList: AreaCode[] = AREA_CODES,
+  customMap: Record<string, AreaCode[]> = AREA_CODE_MAP
+): LookupResult {
   const query = raw.trim();
   const kind = detectInput(query);
   if (!query) return { kind: "unknown", query, matches: [] };
@@ -124,7 +128,7 @@ export function lookup(raw: string): LookupResult {
       nxx,
       normalizedPhone: formatUS(digits),
       e164: toE164(digits),
-      matches: digits.length >= 10 ? (AREA_CODE_MAP[npa] ?? []) : [],
+      matches: digits.length >= 10 ? (customMap[npa] ?? []) : [],
     };
   }
 
@@ -138,7 +142,7 @@ export function lookup(raw: string): LookupResult {
       nxx,
       normalizedPhone: `(${npa}) ${nxx}-XXXX`,
       e164: `+1${npa}${nxx}XXXX`,
-      matches: AREA_CODE_MAP[npa] ?? [],
+      matches: customMap[npa] ?? [],
     };
   }
 
@@ -147,8 +151,8 @@ export function lookup(raw: string): LookupResult {
     return { 
       kind, 
       query, 
-      npa,
-      matches: AREA_CODE_MAP[npa] ?? [] 
+      npa, 
+      matches: customMap[npa] ?? [] 
     };
   }
 
@@ -160,7 +164,7 @@ export function lookup(raw: string): LookupResult {
     return {
       kind: "region",
       query,
-      matches: AREA_CODES.filter(
+      matches: customList.filter(
         (a) => a.region.toLowerCase() === targetAbbr || a.regionName.toLowerCase() === lower,
       ),
     };
@@ -169,7 +173,7 @@ export function lookup(raw: string): LookupResult {
   return {
     kind: "city",
     query,
-    matches: AREA_CODES.filter(
+    matches: customList.filter(
       (a) =>
         a.cities.some((c) => c.toLowerCase().includes(lower)) ||
         a.regionName.toLowerCase().includes(lower),

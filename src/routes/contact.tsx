@@ -1,10 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { CheckCircle2, Mail, MapPin, MessageSquare, Phone, Send } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, Mail, MapPin, MessageSquare, Phone, Send } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { COMPANY } from "@/data/company";
 import { useI18n } from "@/lib/i18n";
+import { fetchSiteSettings, submitContactMessage } from "@/lib/collections";
+import { isFirebaseConfigured, trackAnalyticsEvent } from "@/lib/firebase";
+import { getClientGeoInfo } from "@/lib/geo";
 
 export const Route = createFileRoute("/contact")({
   component: ContactPage,
@@ -14,11 +18,63 @@ function ContactPage() {
   const { lang } = useI18n();
   const isAr = lang === "ar";
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { data: dbSettings } = useQuery({
+    queryKey: ["siteSettings"],
+    queryFn: fetchSiteSettings,
+    enabled: isFirebaseConfigured,
+  });
+
+  const settings = dbSettings || {
+    address: COMPANY.address,
+    phone: COMPANY.phone,
+    supportEmail: COMPANY.email,
+    businessHours: COMPANY.businessHours,
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      const geo = await getClientGeoInfo();
+      await submitContactMessage({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        subject: form.subject.trim(),
+        message: form.message.trim(),
+        country: geo.country,
+        city: geo.city,
+        userLanguage: lang,
+      });
+
+      trackAnalyticsEvent("contact_inquiry_submitted", {
+        country: geo.country,
+        city: geo.city,
+        user_lang: lang,
+      });
+
+      setSubmitted(true);
+    } catch (err: any) {
+      console.error("[Contact] Error submitting message:", err);
+      setError(
+        isAr
+          ? "تعذر إرسال الرسالة في الوقت الحالي. يرجى التحقق من اتصالك والمحاولة لاحقاً."
+          : "Could not send your message at this time. Please check your connection and try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleReset = () => {
+    setForm({ name: "", email: "", subject: "", message: "" });
+    setSubmitted(false);
+    setError(null);
   };
 
   return (
@@ -55,9 +111,11 @@ function ContactPage() {
                     <MapPin className="size-5" />
                   </div>
                   <div>
-                    <span className="font-semibold text-foreground block mb-0.5">Physical Address</span>
+                    <span className="font-semibold text-foreground block mb-0.5">
+                      {isAr ? "العنوان الفعلي" : "Physical Address"}
+                    </span>
                     <span className="text-xs text-muted-foreground leading-relaxed">
-                      {COMPANY.address}
+                      {settings.address || COMPANY.address}
                     </span>
                   </div>
                 </li>
@@ -67,12 +125,14 @@ function ContactPage() {
                     <Phone className="size-5" />
                   </div>
                   <div>
-                    <span className="font-semibold text-foreground block mb-0.5">Phone (Direct Desk)</span>
+                    <span className="font-semibold text-foreground block mb-0.5">
+                      {isAr ? "الهاتف المباشر" : "Phone (Direct Desk)"}
+                    </span>
                     <a
-                      href={`tel:${COMPANY.phoneRaw}`}
+                      href={`tel:${settings.phone || COMPANY.phoneRaw}`}
                       className="text-xs text-primary hover:underline font-mono"
                     >
-                      {COMPANY.phone}
+                      {settings.phone || COMPANY.phone}
                     </a>
                   </div>
                 </li>
@@ -82,12 +142,14 @@ function ContactPage() {
                     <Mail className="size-5" />
                   </div>
                   <div>
-                    <span className="font-semibold text-foreground block mb-0.5">Official Email</span>
+                    <span className="font-semibold text-foreground block mb-0.5">
+                      {isAr ? "البريد الإلكتروني الرسمي" : "Official Email"}
+                    </span>
                     <a
-                      href={`mailto:${COMPANY.email}`}
+                      href={`mailto:${settings.supportEmail || COMPANY.email}`}
                       className="text-xs text-primary hover:underline font-mono"
                     >
-                      {COMPANY.email}
+                      {settings.supportEmail || COMPANY.email}
                     </a>
                   </div>
                 </li>
@@ -95,7 +157,9 @@ function ContactPage() {
             </div>
 
             <div className="mt-8 pt-6 border-t border-border/60 text-xs text-muted-foreground">
-              Operating hours: Monday – Friday, 8:00 AM – 6:00 PM Eastern Time.
+              {isAr
+                ? "ساعات العمل: من الإثنين إلى الجمعة، 8:00 صباحاً – 6:00 مساءً بالتوقيت الشرقي."
+                : "Operating hours: Monday – Friday, 8:00 AM – 6:00 PM Eastern Time."}
             </div>
           </div>
 
@@ -111,14 +175,15 @@ function ContactPage() {
                 </h3>
                 <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                   {isAr
-                    ? `شكراً لتواصلك مع ENTEC. سيقوم فريقنا بالرد على ${form.email} في أقرب وقت ممكن.`
+                    ? `شكراً لتواصلك مع ENTEC. سيقوم فريق العمليات بالرد على ${form.email} في أقرب وقت.`
                     : `Thank you for reaching out to ENTEC. An analyst will review your inquiry and follow up at ${form.email} shortly.`}
                 </p>
                 <button
-                  onClick={() => setSubmitted(false)}
-                  className="mt-4 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold"
+                  type="button"
+                  onClick={handleReset}
+                  className="mt-4 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 active:scale-95 transition-all shadow-md"
                 >
-                  Send another inquiry
+                  {isAr ? "إرسال رسالة أخرى" : "Send another inquiry"}
                 </button>
               </div>
             ) : (
@@ -127,68 +192,97 @@ function ContactPage() {
                   {isAr ? "إرسال رسالة مباشرة" : "Send an Inquiry"}
                 </h3>
 
+                {error && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs">
+                    <AlertCircle className="size-4 shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                )}
+
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground block mb-1">
-                    Your Name
+                    {isAr ? "الاسم الكامل" : "Your Name"}
                   </label>
                   <input
                     type="text"
                     required
+                    disabled={isSubmitting}
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    placeholder="Jane Doe"
-                    className="w-full rounded-xl bg-card border border-border px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                    placeholder={isAr ? "مثال: عبد الله محمد" : "Jane Doe"}
+                    className="w-full rounded-xl bg-card border border-border px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary disabled:opacity-50"
                   />
                 </div>
 
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground block mb-1">
-                    Email Address
+                    {isAr ? "البريد الإلكتروني" : "Email Address"}
                   </label>
                   <input
                     type="email"
                     required
+                    disabled={isSubmitting}
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     placeholder="name@company.com"
-                    className="w-full rounded-xl bg-card border border-border px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                    className="w-full rounded-xl bg-card border border-border px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary disabled:opacity-50"
                   />
                 </div>
 
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground block mb-1">
-                    Inquiry Subject
+                    {isAr ? "موضوع الاستفسار" : "Inquiry Subject"}
                   </label>
                   <input
                     type="text"
                     required
+                    disabled={isSubmitting}
                     value={form.subject}
                     onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                    placeholder="Data feed integration, TCPA compliance, or custom export"
-                    className="w-full rounded-xl bg-card border border-border px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                    placeholder={
+                      isAr
+                        ? "استفسار عن البيانات، الامتثال، أو التراخيص"
+                        : "Data feed integration, TCPA compliance, or custom export"
+                    }
+                    className="w-full rounded-xl bg-card border border-border px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary disabled:opacity-50"
                   />
                 </div>
 
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground block mb-1">
-                    Message
+                    {isAr ? "نص الرسالة" : "Message"}
                   </label>
                   <textarea
                     rows={4}
                     required
+                    disabled={isSubmitting}
                     value={form.message}
                     onChange={(e) => setForm({ ...form, message: e.target.value })}
-                    placeholder="Describe your telecom intelligence inquiry..."
-                    className="w-full rounded-xl bg-card border border-border px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary resize-y"
+                    placeholder={
+                      isAr
+                        ? "اكتب تفاصيل استفسارك هنا..."
+                        : "Describe your telecom intelligence inquiry..."
+                    }
+                    className="w-full rounded-xl bg-card border border-border px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary resize-y disabled:opacity-50"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-xs flex items-center justify-center gap-2 shadow-md hover:brightness-110 active:scale-95 transition-all"
+                  disabled={isSubmitting}
+                  className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-xs flex items-center justify-center gap-2 shadow-md hover:brightness-110 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <Send className="size-3.5" />
-                  <span>Send Message to ENTEC</span>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" />
+                      <span>{isAr ? "جاري إرسال الرسالة..." : "Sending Message..."}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="size-3.5" />
+                      <span>{isAr ? "إرسال الرسالة إلى ENTEC" : "Send Message to ENTEC"}</span>
+                    </>
+                  )}
                 </button>
               </form>
             )}

@@ -1,11 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, useRef, type ChangeEvent } from "react";
 import {
+  Activity,
   AlertTriangle,
   ArrowDown,
   ArrowRightLeft,
   ArrowUp,
+  Building2,
+  CheckCheck,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Clock,
   Compass,
   Copy,
@@ -29,9 +34,12 @@ import {
   Search,
   Shield,
   ShieldAlert,
+  ShieldCheck,
+  Navigation,
   Sparkles,
   Star,
   Trash2,
+  TrendingUp,
   Upload,
   X,
   Zap,
@@ -49,6 +57,7 @@ import {
   type AreaCode,
   type Country,
 } from "@/data/areaCodes";
+import { getAreaCodeCoordinates } from "@/data/geoCoordinates";
 import {
   detectInput,
   formatUS,
@@ -63,6 +72,17 @@ import {
 import { exportCsv, exportJson, exportXlsx, copyTable } from "@/lib/exporters";
 import { useI18n } from "@/lib/i18n";
 import { TimeConverterTab } from "@/components/tools/TimeConverterTab";
+import { InteractiveTelecomMap } from "@/components/map/InteractiveTelecomMap";
+import { AreaCodeLeafletMap } from "@/components/map/AreaCodeLeafletMap";
+import { useQuery } from "@tanstack/react-query";
+import { fetchAreaCodesFromDb, adaptDbRecordToAreaCode, logSearchQuery, logEngagementEvent } from "@/lib/collections";
+import { getClientGeoInfo, checkSearchVelocity } from "@/lib/geo";
+import { isFirebaseConfigured, trackAnalyticsEvent } from "@/lib/firebase";
+import { LiveTicker } from "@/components/hero/LiveTicker";
+import { TrustBar } from "@/components/landing/TrustBar";
+import { EnterpriseEditorialSplit } from "@/components/landing/EnterpriseEditorialSplit";
+import { InvertedNumbersSection } from "@/components/landing/InvertedNumbersSection";
+import { EnterpriseTestimonials } from "@/components/landing/EnterpriseTestimonials";
 
 export const Route = createFileRoute("/")({
   component: IndexPage,
@@ -86,6 +106,25 @@ const TIMEZONES_LIST = [
   { id: "Pacific/Pago_Pago", label: "Samoa Time (SST)", sampleCity: "Pago Pago" }
 ];
 
+interface PopularNpaDefinition {
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  badgeEn: string;
+  badgeAr: string;
+}
+
+const POPULAR_NPAS: PopularNpaDefinition[] = [
+  { code: "212", nameEn: "New York City (Manhattan)", nameAr: "نيويورك (مانهاتن)", badgeEn: "Wall St & Midtown", badgeAr: "مركز المال والأعمال" },
+  { code: "310", nameEn: "Los Angeles & Beverly Hills", nameAr: "لوس أنجلوس وبيفرلي هيلز", badgeEn: "West Coast Hub", badgeAr: "مركز الساحل الغربي" },
+  { code: "312", nameEn: "Chicago (Downtown Loop)", nameAr: "شيكاغو (وسط المدينة)", badgeEn: "Financial District", badgeAr: "القطاع التجاري المركزي" },
+  { code: "415", nameEn: "San Francisco & Silicon Valley", nameAr: "سان فرانسيسكو ووادي السيليكون", badgeEn: "Tech Corridor", badgeAr: "وادي التكنولوجيا" },
+  { code: "305", nameEn: "Miami & South Florida", nameAr: "ميامي وجنوب فلوريدا", badgeEn: "International Gateway", badgeAr: "بوابة أمريكا اللاتينية" },
+  { code: "416", nameEn: "Toronto, Ontario", nameAr: "تورونتو، أونتاريو", badgeEn: "Canadian Metro", badgeAr: "كندا الكبرى" },
+  { code: "800", nameEn: "North American Toll-Free", nameAr: "الخطوط المجانية الوطنية", badgeEn: "Nationwide Inbound", badgeAr: "الشبكة المجانية الموحدة" },
+  { code: "876", nameEn: "Jamaica (Caribbean Risk)", nameAr: "جامايكا (مخاطر احتيال)", badgeEn: "Wangiri Risk Alert", badgeAr: "تحذير احتيال الرنة الواحدة" },
+];
+
 const SAMPLE_RAW_TEXT = `Call Center Raw Inbound Lead Log - 2026 Batch #409
 Customer Service Records:
 1. John Doe - Philadelphia PA: (215) 555-0143
@@ -104,32 +143,32 @@ Customer Service Records:
 function UsFlagBadge({ className = "w-4 h-2.5" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 640 400" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path fill="#b22234" d="M0 0h640v400H0z"/>
-      <path stroke="#fff" strokeWidth="30.77" d="M0 46.15h640M0 107.7h640M0 169.2h640M0 230.8h640M0 292.3h640M0 353.8h640"/>
-      <path fill="#3c3b6e" d="M0 0h256v215.4H0z"/>
-      <circle cx="42.6" cy="35.9" r="7" fill="#fff"/>
-      <circle cx="85.3" cy="35.9" r="7" fill="#fff"/>
-      <circle cx="128" cy="35.9" r="7" fill="#fff"/>
-      <circle cx="170.6" cy="35.9" r="7" fill="#fff"/>
-      <circle cx="213.3" cy="35.9" r="7" fill="#fff"/>
-      <circle cx="64" cy="71.8" r="7" fill="#fff"/>
-      <circle cx="106.6" cy="71.8" r="7" fill="#fff"/>
-      <circle cx="149.3" cy="71.8" r="7" fill="#fff"/>
-      <circle cx="192" cy="71.8" r="7" fill="#fff"/>
-      <circle cx="42.6" cy="107.7" r="7" fill="#fff"/>
-      <circle cx="85.3" cy="107.7" r="7" fill="#fff"/>
-      <circle cx="128" cy="107.7" r="7" fill="#fff"/>
-      <circle cx="170.6" cy="107.7" r="7" fill="#fff"/>
-      <circle cx="213.3" cy="107.7" r="7" fill="#fff"/>
-      <circle cx="64" cy="143.6" r="7" fill="#fff"/>
-      <circle cx="106.6" cy="143.6" r="7" fill="#fff"/>
-      <circle cx="149.3" cy="143.6" r="7" fill="#fff"/>
-      <circle cx="192" cy="143.6" r="7" fill="#fff"/>
-      <circle cx="42.6" cy="179.5" r="7" fill="#fff"/>
-      <circle cx="85.3" cy="179.5" r="7" fill="#fff"/>
-      <circle cx="128" cy="179.5" r="7" fill="#fff"/>
-      <circle cx="170.6" cy="179.5" r="7" fill="#fff"/>
-      <circle cx="213.3" cy="179.5" r="7" fill="#fff"/>
+      <path fill="#b22234" d="M0 0h640v400H0z" />
+      <path stroke="#fff" strokeWidth="30.77" d="M0 46.15h640M0 107.7h640M0 169.2h640M0 230.8h640M0 292.3h640M0 353.8h640" />
+      <path fill="#3c3b6e" d="M0 0h256v215.4H0z" />
+      <circle cx="42.6" cy="35.9" r="7" fill="#fff" />
+      <circle cx="85.3" cy="35.9" r="7" fill="#fff" />
+      <circle cx="128" cy="35.9" r="7" fill="#fff" />
+      <circle cx="170.6" cy="35.9" r="7" fill="#fff" />
+      <circle cx="213.3" cy="35.9" r="7" fill="#fff" />
+      <circle cx="64" cy="71.8" r="7" fill="#fff" />
+      <circle cx="106.6" cy="71.8" r="7" fill="#fff" />
+      <circle cx="149.3" cy="71.8" r="7" fill="#fff" />
+      <circle cx="192" cy="71.8" r="7" fill="#fff" />
+      <circle cx="42.6" cy="107.7" r="7" fill="#fff" />
+      <circle cx="85.3" cy="107.7" r="7" fill="#fff" />
+      <circle cx="128" cy="107.7" r="7" fill="#fff" />
+      <circle cx="170.6" cy="107.7" r="7" fill="#fff" />
+      <circle cx="213.3" cy="107.7" r="7" fill="#fff" />
+      <circle cx="64" cy="143.6" r="7" fill="#fff" />
+      <circle cx="106.6" cy="143.6" r="7" fill="#fff" />
+      <circle cx="149.3" cy="143.6" r="7" fill="#fff" />
+      <circle cx="192" cy="143.6" r="7" fill="#fff" />
+      <circle cx="42.6" cy="179.5" r="7" fill="#fff" />
+      <circle cx="85.3" cy="179.5" r="7" fill="#fff" />
+      <circle cx="128" cy="179.5" r="7" fill="#fff" />
+      <circle cx="170.6" cy="179.5" r="7" fill="#fff" />
+      <circle cx="213.3" cy="179.5" r="7" fill="#fff" />
     </svg>
   );
 }
@@ -137,14 +176,14 @@ function UsFlagBadge({ className = "w-4 h-2.5" }: { className?: string }) {
 function CaFlagBadge({ className = "w-4 h-2.5" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 640 320" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path fill="#d80027" d="M0 0h160v320H0zM480 0h160v320H480z"/>
-      <path fill="#fff" d="M160 0h320v320H160z"/>
-      <path fill="#d80027" d="m320 60 16 46 36-12-16 40 44 8-32 30 18 36-40-16-10 40-16-40-40 16 18-36-32-30 44-8-16-40 36 12 16-46z"/>
+      <path fill="#d80027" d="M0 0h160v320H0zM480 0h160v320H480z" />
+      <path fill="#fff" d="M160 0h320v320H160z" />
+      <path fill="#d80027" d="m320 60 16 46 36-12-16 40 44 8-32 30 18 36-40-16-10 40-16-40-40 16 18-36-32-30 44-8-16-40 36 12 16-46z" />
     </svg>
   );
 }
 
-// Reusable Area Code Intelligence Dossier Card - Luxury Glassmorphism
+// Reusable Area Code Intelligence Dossier Card - Apple Light Glass & Materials
 function AreaCodeCard({
   item,
   now,
@@ -152,6 +191,8 @@ function AreaCodeCard({
   onToggleFavorite,
   onCopyDossier,
   onInspectCode,
+  onNavigateToRadar,
+  isAr = false,
   t,
 }: {
   item: AreaCode;
@@ -159,60 +200,85 @@ function AreaCodeCard({
   isFav: boolean;
   onToggleFavorite: (code: string) => void;
   onCopyDossier: (item: AreaCode) => void;
-  onInspectCode?: (code: string) => void;
+  onInspectCode?: ((code: string) => void) | undefined;
+  onNavigateToRadar?: (() => void) | undefined;
+  isAr?: boolean | undefined;
   t: (k: string) => string;
 }) {
   const clock = localTime(item.timezone, now);
   const win = callingWindow(clock.hour);
   const carrier = item.carrier || carrierFor(item.code, item.country);
+  const [lat, lng] = getAreaCodeCoordinates(item);
+  const [copiedSample, setCopiedSample] = useState(false);
+  const [showTechSpecs, setShowTechSpecs] = useState(false);
+
+  // Time remaining calculation
+  let countdownText = "";
+  if (win.status === "good" || win.status === "caution") {
+    // Window closes at 21:00 (9:00 PM)
+    const minutesLeft = (20 - clock.hour) * 60 + (60 - clock.minute);
+    const h = Math.floor(minutesLeft / 60);
+    const m = minutesLeft % 60;
+    countdownText = isAr
+      ? `تنتهي فترة الاتصال المسموحة بعد ${h} س ${m} د (عند 9:00 م)`
+      : `Safe window closes in ${h}h ${m}m (at 9:00 PM local)`;
+  } else {
+    // Window opens at 08:00 (8:00 AM)
+    const hoursUntil = clock.hour >= 21 ? 24 - clock.hour + 8 : 8 - clock.hour;
+    const minutesUntil = (hoursUntil - 1) * 60 + (60 - clock.minute);
+    const h = Math.floor(minutesUntil / 60);
+    const m = minutesUntil % 60;
+    countdownText = isAr
+      ? `تفتح فترة الاتصال القانونية بعد ${h} س ${m} د (عند 8:00 ص)`
+      : `Legal TCPA window opens in ${h}h ${m}m (at 8:00 AM local)`;
+  }
+
+  // 24-hour timeline position: (hour + minute / 60) / 24 * 100%
+  const currentTimelinePercent = Math.min(
+    100,
+    Math.max(0, ((clock.hour + clock.minute / 60) / 24) * 100),
+  );
+
+  const samplePhoneNumber = `+1 (${item.code}) 555-0199`;
+
+  const copySampleNumber = () => {
+    navigator.clipboard.writeText(`+1${item.code}5550199`);
+    setCopiedSample(true);
+    setTimeout(() => setCopiedSample(false), 2000);
+    logEngagementEvent({ action: "copy_phone", target: item.code });
+  };
+
+  const coordsStr = `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? "N" : "S"}, ${Math.abs(lng).toFixed(2)}°${lng >= 0 ? "W" : "E"}`;
 
   return (
     <div
       key={`${item.code}-${item.region}`}
-      className="group relative overflow-hidden rounded-3xl bg-gradient-to-b from-slate-900/90 via-slate-900/75 to-[#0b101d]/90 backdrop-blur-2xl border border-white/[0.12] hover:border-cyan-400/40 p-5 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.4)] hover:shadow-[0_25px_60px_rgba(6,182,212,0.18)] transition-all duration-300 flex flex-col justify-between"
+      className="group rounded-3xl bg-white/80 dark:bg-slate-900/85 backdrop-blur-2xl border border-white/80 dark:border-white/10 p-4 sm:p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)] dark:shadow-2xl flex flex-col justify-between space-y-4 transition-all"
     >
-      {/* Specular Ambient Glow */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
-      <div className="pointer-events-none absolute -top-28 -right-28 size-56 rounded-full bg-cyan-500/15 blur-3xl group-hover:bg-cyan-500/25 transition-all duration-700" />
-      <div className="pointer-events-none absolute -bottom-28 -left-28 size-56 rounded-full bg-indigo-500/10 blur-3xl group-hover:bg-indigo-500/20 transition-all duration-700" />
-
       <div className="space-y-4">
-        {/* Header: Area Code Emblem & Region Identification */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
-            {/* Illuminated NPA Badge */}
-            <div className="relative flex flex-col items-center justify-center px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-br from-cyan-500/20 via-blue-600/10 to-slate-950/80 border border-cyan-400/35 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_0_20px_rgba(6,182,212,0.15)] group-hover:border-cyan-400/60 transition-all shrink-0">
-              <span className="text-[9px] font-mono tracking-widest text-cyan-300 font-bold uppercase">
+        {/* Tier 1: Identity & Real-Time Clock */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3.5 min-w-0">
+            {/* NPA Monogram */}
+            <div className="flex flex-col items-center justify-center px-3.5 py-2 rounded-2xl bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 shrink-0 shadow-xs">
+              <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 NPA
               </span>
-              <span className="font-mono text-3xl sm:text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white via-cyan-100 to-cyan-300 drop-shadow-[0_2px_10px_rgba(6,182,212,0.4)] leading-tight">
+              <span className="font-mono text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
                 {item.code}
+              </span>
+              <span className="text-[9px] font-mono text-slate-500 dark:text-slate-400">
+                {item.country === "TF" ? "Toll-Free" : "Standard"}
               </span>
             </div>
 
-            {/* Region Details & Flags */}
-            <div className="space-y-1.5 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-display font-extrabold text-white text-lg sm:text-xl tracking-tight leading-none truncate">
-                  {item.regionName}
-                </h3>
-                <span className="px-2 py-0.5 rounded-md text-[11px] font-mono font-bold bg-white/10 border border-white/20 text-white shadow-xs">
-                  {item.region}
-                </span>
-                {item.mandatory10Digit ? (
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
-                    10-Digit Dialing
-                  </span>
-                ) : (
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-white/[0.05] text-slate-400 border border-white/10">
-                    7/10-Digit
-                  </span>
-                )}
-              </div>
-
-              {/* Badges Row */}
-              <div className="flex items-center gap-2 flex-wrap text-xs text-slate-300">
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/[0.06] border border-white/10 text-slate-200 font-medium">
+            {/* Region Details & Badges */}
+            <div className="space-y-1 min-w-0">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight leading-snug truncate">
+                {item.regionName} • {item.region}
+              </h3>
+              <div className="flex items-center gap-2 flex-wrap text-xs text-slate-600 dark:text-slate-300">
+                <span className="inline-flex items-center gap-1.5 font-medium">
                   {item.country === "US" ? (
                     <>
                       <UsFlagBadge className="w-3.5 h-2.5 rounded-xs" />
@@ -225,387 +291,310 @@ function AreaCodeCard({
                     </>
                   ) : item.country === "TF" ? (
                     <>
-                      <Phone className="size-3 text-emerald-400" />
+                      <Phone className="size-3 text-emerald-600 dark:text-emerald-400" />
                       <span>Toll-Free Network</span>
                     </>
                   ) : (
                     <>
-                      <Globe2 className="size-3 text-amber-400" />
+                      <Globe2 className="size-3 text-amber-600 dark:text-amber-400" />
                       <span>Caribbean / Offshore</span>
                     </>
                   )}
                 </span>
-
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/10 text-slate-300 font-mono text-[11px]">
-                  <Clock className="size-3 text-cyan-400" />
-                  <span>{item.tzLabel}</span>
+                <span className="text-slate-400 dark:text-slate-600">•</span>
+                <span className="text-slate-500 dark:text-slate-400">
+                  {item.mandatory10Digit
+                    ? isAr
+                      ? "طلب 10 أرقام إلزامي"
+                      : "10-Digit Dialing"
+                    : isAr
+                      ? "طلب 7 أو 10 أرقام"
+                      : "7/10-Digit"}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Bookmark Button */}
-          <button
-            onClick={() => onToggleFavorite(item.code)}
-            aria-label="Bookmark"
-            title={isFav ? "Saved to favorites" : "Save area code"}
-            className={`p-2.5 rounded-xl border transition-all cursor-pointer shrink-0 ${
-              isFav
-                ? "bg-amber-500/20 border-amber-500/40 text-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.25)]"
-                : "bg-white/[0.04] hover:bg-white/[0.09] border-white/10 text-slate-400 hover:text-amber-300"
-            }`}
-          >
-            <Star
-              className={`size-4.5 transition-transform active:scale-125 ${
-                isFav ? "fill-amber-400 text-amber-400" : ""
-              }`}
-            />
-          </button>
+          {/* Clock & Favorite Action */}
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="text-end font-mono" suppressHydrationWarning>
+              <div className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+                {clock.time}
+              </div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-end gap-1.5">
+                <span>{clock.date}</span>
+                <span className="text-slate-400 dark:text-slate-600">•</span>
+                <span className="text-primary dark:text-cyan-300 font-semibold">{item.tzLabel}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => onToggleFavorite(item.code)}
+              aria-label="Bookmark"
+              title={isFav ? "Saved to favorites" : "Save area code"}
+              className={`p-2 rounded-2xl border transition-all cursor-pointer shrink-0 shadow-xs ${isFav
+                  ? "bg-amber-500/15 border-amber-500/40 text-amber-600 dark:text-amber-300"
+                  : "bg-white/80 dark:bg-slate-800/60 hover:bg-white dark:hover:bg-slate-800 border-black/[0.08] dark:border-slate-700/60 text-slate-400 hover:text-amber-500"
+                }`}
+            >
+              <Star
+                className={`size-4 transition-transform active:scale-125 ${isFav ? "fill-amber-500 text-amber-500 dark:fill-amber-400 dark:text-amber-400" : ""
+                  }`}
+              />
+            </button>
+          </div>
         </div>
 
-        {/* High-Risk Trap Advisory (if flagged) */}
+        {/* Toll-Fraud Risk Alert if present */}
         {item.risk && (
-          <div className="rounded-2xl border border-rose-500/40 bg-gradient-to-r from-rose-950/60 via-rose-900/30 to-rose-950/60 p-3.5 text-xs text-rose-200 flex items-start gap-3 shadow-[0_0_25px_rgba(244,63,94,0.15)]">
-            <div className="p-1.5 rounded-lg bg-rose-500/20 border border-rose-500/30 shrink-0 mt-0.5">
-              <ShieldAlert className="size-4 text-rose-400" />
-            </div>
+          <div className="rounded-2xl border border-rose-500/30 bg-rose-50 dark:bg-rose-950/40 p-3.5 text-xs text-rose-800 dark:text-rose-200 flex items-start gap-3 shadow-xs">
+            <ShieldAlert className="size-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
             <div className="space-y-0.5">
-              <div className="font-bold text-rose-300 text-xs tracking-wide uppercase flex items-center gap-2">
+              <div className="font-bold text-rose-700 dark:text-rose-300 text-xs tracking-wide uppercase flex items-center gap-2">
                 <span>{t("risk_title")}</span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-200 font-mono">
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-500/15 text-rose-700 dark:text-rose-300 font-mono font-semibold">
                   FCC Advisory
                 </span>
               </div>
-              <p className="text-[11px] text-rose-300/90 leading-relaxed">{t("risk_body")}</p>
+              <p className="text-[11px] text-rose-700/90 dark:text-rose-300/90 leading-relaxed">{t("risk_body")}</p>
             </div>
           </div>
         )}
 
-        {/* Live Status & Clock Bar (Precision Radar Strip) */}
-        <div className="rounded-2xl bg-gradient-to-br from-slate-950/70 via-[#0a0f1d]/80 to-slate-950/90 border border-white/[0.08] p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner">
-          {/* Calling Window Status */}
-          <div className="flex items-center gap-3">
-            <div className="relative flex size-3 shrink-0 items-center justify-center">
+        {/* Calling Window & Timeline (Apple Frosted Style) */}
+        <div
+          className={`rounded-2xl p-3.5 sm:p-4 border transition-colors space-y-2.5 shadow-xs ${win.status === "good"
+              ? "bg-emerald-500/[0.08] dark:bg-emerald-950/20 border-emerald-500/25"
+              : win.status === "caution"
+                ? "bg-amber-500/[0.08] dark:bg-amber-950/20 border-amber-500/25"
+                : "bg-rose-500/[0.08] dark:bg-rose-950/20 border-rose-500/25"
+            }`}
+        >
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
               <span
-                className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                  win.status === "good"
-                    ? "bg-emerald-400"
+                className={`size-2 rounded-full shrink-0 ${win.status === "good"
+                    ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
                     : win.status === "caution"
-                      ? "bg-amber-400"
-                      : "bg-rose-500"
-                }`}
-              />
-              <span
-                className={`relative inline-flex rounded-full size-2.5 ${
-                  win.status === "good"
-                    ? "bg-emerald-500 shadow-[0_0_12px_rgba(52,211,153,0.8)]"
-                    : win.status === "caution"
-                      ? "bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.8)]"
-                      : "bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.8)]"
-                }`}
-              />
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <span
-                  className={`font-extrabold text-xs uppercase tracking-wider ${
-                    win.status === "good"
-                      ? "text-emerald-400"
-                      : win.status === "caution"
-                        ? "text-amber-400"
-                        : "text-rose-400"
+                      ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"
+                      : "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]"
                   }`}
-                >
-                  {win.label}
-                </span>
-                <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-md bg-white/[0.06] border border-white/10 text-slate-300">
-                  TCPA Rule
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              />
+              <span
+                className={`font-bold text-xs uppercase tracking-wider ${win.status === "good"
+                    ? "text-emerald-800 dark:text-emerald-300"
+                    : win.status === "caution"
+                      ? "text-amber-800 dark:text-amber-300"
+                      : "text-rose-800 dark:text-rose-300"
+                  }`}
+              >
                 {win.status === "good"
-                  ? "Compliant Calling Hours (8:00 AM – 9:00 PM local time)"
-                  : win.detail}
-              </p>
+                  ? isAr
+                    ? "ساعات الاتصال مسموحة وقانونية"
+                    : "Safe to Call • TCPA Compliant"
+                  : win.status === "caution"
+                    ? isAr
+                      ? "نافذة الاتصال قاربت على الانتهاء"
+                      : "Borderline • Window Closing"
+                    : isAr
+                      ? "خارج ساعات الاتصال القانونية (ممنوع)"
+                      : "Do Not Call • Outside TCPA Hours"}
+              </span>
             </div>
+            <span className="text-xs font-mono text-slate-600 dark:text-slate-300 font-medium">
+              {countdownText}
+            </span>
           </div>
 
-          {/* Clock Display */}
-          <div className="text-start sm:text-end font-mono shrink-0 pl-6 sm:pl-0 border-t sm:border-t-0 border-white/[0.06] pt-2.5 sm:pt-0" suppressHydrationWarning>
-            <div className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none">
-              {clock.time}
+          {/* Clean 24-Hour Visual Timeline */}
+          <div className="space-y-1">
+            <div className="relative h-1.5 w-full rounded-full bg-slate-200/80 dark:bg-slate-800/80 overflow-visible">
+              {/* Permitted Calling Window (8 AM - 9 PM) */}
+              <div
+                className="absolute top-0 bottom-0 left-[33.33%] right-[12.5%] rounded-full bg-emerald-500/30 dark:bg-emerald-500/30"
+                title="TCPA Permitted Calling Hours (8:00 AM – 9:00 PM)"
+              />
+              {/* Current Time Pin */}
+              <div
+                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-10"
+                style={{ left: `${currentTimelinePercent}%` }}
+                title={`Current time: ${clock.time}`}
+              >
+                <span className="block size-3 rounded-full bg-white border-2 border-primary shadow-xs" />
+              </div>
             </div>
-            <div className="text-[11px] text-slate-400 mt-1 font-sans flex items-center sm:justify-end gap-1.5">
-              <span className="text-slate-300 font-medium">{clock.date}</span>
-              <span>•</span>
-              <span className="font-mono text-[10px] text-cyan-300 bg-cyan-500/10 px-1.5 py-0.2 rounded border border-cyan-500/20">
-                {clock.offset}
-              </span>
+            <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 dark:text-slate-500 select-none">
+              <span>12 AM</span>
+              <span className="text-emerald-600 dark:text-emerald-500/80 font-medium">8 AM (Start)</span>
+              <span className="text-emerald-600 dark:text-emerald-500/80 font-medium">9 PM (Cutoff)</span>
+              <span>12 AM</span>
             </div>
           </div>
         </div>
 
-        {/* Technical Specs 2-Column Matrix */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          {/* Dominant Carrier */}
-          <div className="p-3.5 rounded-2xl bg-slate-950/40 border border-white/[0.06] hover:border-cyan-500/30 transition-colors space-y-1.5">
-            <div className="flex items-center justify-between text-slate-400 text-[10px] uppercase font-mono font-bold tracking-wider">
-              <div className="flex items-center gap-1.5 text-cyan-400">
-                <Radio className="size-3.5" />
+        {/* Tier 2: Essential Specifications Matrix (Apple Sunken Glass) */}
+        <div className="rounded-2xl bg-slate-50/80 dark:bg-slate-950/40 border border-slate-200/80 dark:border-slate-800/70 p-3.5 sm:p-4 space-y-3 shadow-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            {/* Dominant Carrier */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-[11px] font-medium uppercase tracking-wider">
+                <Radio className="size-3 text-primary" />
                 <span>{t("carrier")} / ILEC</span>
               </div>
-              <span className="text-[9px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20">
-                Active
-              </span>
+              <div className="font-semibold text-slate-900 dark:text-white text-sm truncate" title={carrier}>
+                {carrier}
+              </div>
+              <div className="text-[10px] text-slate-400 dark:text-slate-500">
+                {isAr ? "المشغّل المحلي الرئيسي (Incumbent Carrier)" : "Incumbent Local Exchange"}
+              </div>
             </div>
-            <div className="font-bold text-white text-xs sm:text-sm tracking-tight truncate" title={carrier}>
-              {carrier}
-            </div>
-            <div className="text-[10px] text-slate-400 flex items-center gap-1">
-              <span className="size-1 rounded-full bg-cyan-400"></span>
-              <span>Primary Incumbent Local Exchange</span>
+
+            {/* Coverage Cities */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-[11px] font-medium uppercase tracking-wider">
+                <MapPin className="size-3 text-primary" />
+                <span>{t("city")} & Coverage</span>
+              </div>
+              <div
+                className="font-semibold text-slate-900 dark:text-slate-200 text-sm truncate"
+                title={item.cities.join(", ")}
+              >
+                {item.cities.slice(0, 3).join(", ")}
+                {item.cities.length > 3 && (
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-normal ml-1">
+                    +{item.cities.length - 3} more
+                  </span>
+                )}
+              </div>
+              <div className="text-[10px] text-slate-400 dark:text-slate-500">
+                {isAr ? `${item.cities.length} مراكز تغطية مسجلة` : `${item.cities.length} Registered Rate Centers`}
+              </div>
             </div>
           </div>
 
-          {/* Primary Cities */}
-          <div className="p-3.5 rounded-2xl bg-slate-950/40 border border-white/[0.06] hover:border-emerald-500/30 transition-colors space-y-1.5">
-            <div className="flex items-center justify-between text-slate-400 text-[10px] uppercase font-mono font-bold tracking-wider">
-              <div className="flex items-center gap-1.5 text-emerald-400">
-                <MapPin className="size-3.5" />
-                <span>{t("city")} & Coverage</span>
-              </div>
-              <span className="text-[9px] text-slate-400 font-mono">
-                {item.cities.length} Centers
+          {/* Overlays Row */}
+          <div className="pt-2.5 border-t border-slate-200/80 dark:border-slate-800/60 flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-medium">
+              <Layers className="size-3 text-primary" />
+              <span>
+                {isAr ? "الأكواد التراكبية المشتركة" : "Shared Relief Overlays"} ({item.overlays?.length || 0}):
               </span>
             </div>
-            <div className="font-semibold text-slate-100 text-xs sm:text-sm truncate" title={item.cities.join(", ")}>
-              {item.cities.join(", ")}
-            </div>
-            <div className="text-[10px] text-slate-400 flex items-center gap-1">
-              <span className="size-1 rounded-full bg-emerald-400"></span>
-              <span>Principal Rate Centers</span>
+
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {item.overlays && item.overlays.length > 0 ? (
+                item.overlays.map((ov) => (
+                  <button
+                    key={ov}
+                    onClick={() => onInspectCode?.(ov)}
+                    title={`Inspect area code ${ov}`}
+                    className="px-2.5 py-0.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-primary/10 text-slate-800 dark:text-slate-200 hover:text-primary border border-black/[0.08] dark:border-slate-700/80 font-mono text-xs font-semibold shadow-xs transition-all cursor-pointer"
+                  >
+                    {ov}
+                  </button>
+                ))
+              ) : (
+                <span className="text-xs text-slate-400 dark:text-slate-500 italic">
+                  {isAr ? "كود مستقل دون تراكبات" : "None (Single code NPA)"}
+                </span>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Shared Relief Overlays Strip */}
-        <div className="p-3.5 rounded-2xl bg-slate-950/40 border border-white/[0.06] flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-slate-400 text-[10px] uppercase font-mono font-bold tracking-wider shrink-0">
-            <div className="p-1 rounded-md bg-purple-500/15 border border-purple-500/25 text-purple-400">
-              <Layers className="size-3.5" />
-            </div>
-            <div>
-              <span className="text-slate-200">Shared Relief Overlays</span>
-              <span className="text-[10px] text-slate-400 font-mono ml-1.5">
-                ({item.overlays?.length || 0})
-              </span>
-            </div>
-          </div>
+        {/* Tier 3: Collapsible Advanced Telephony Specs */}
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowTechSpecs(!showTechSpecs)}
+            className="w-full flex items-center justify-between py-1.5 px-1 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors cursor-pointer"
+          >
+            <span className="flex items-center gap-1.5 font-medium">
+              <span>{isAr ? "المواصفات الفنية المتقدمة والإحداثيات" : "Advanced Technical Specs & Coordinates"}</span>
+            </span>
+            {showTechSpecs ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+          </button>
 
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar justify-end flex-wrap">
-            {item.overlays && item.overlays.length > 0 ? (
-              item.overlays.slice(0, 8).map((ov) => (
-                <button
-                  key={ov}
-                  onClick={() => onInspectCode?.(ov)}
-                  title={`Click to inspect area code ${ov}`}
-                  className="px-2.5 py-1 rounded-lg bg-white/[0.05] hover:bg-cyan-500/20 hover:text-cyan-300 hover:border-cyan-400/40 border border-white/10 font-mono text-xs font-bold text-slate-200 transition-all cursor-pointer active:scale-95 shadow-xs"
-                >
-                  {ov}
-                </button>
-              ))
-            ) : (
-              <span className="text-xs text-slate-400 italic">No assigned overlay (Single-code NPA)</span>
-            )}
-            {item.overlays && item.overlays.length > 8 && (
-              <span className="text-[11px] font-mono text-slate-400 px-1 font-semibold">
-                +{item.overlays.length - 8} more
-              </span>
-            )}
-          </div>
+          {showTechSpecs && (
+            <div className="mt-2 p-3.5 rounded-2xl bg-white/70 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/80 text-xs text-slate-700 dark:text-slate-300 grid grid-cols-2 sm:grid-cols-3 gap-3 font-mono shadow-xs">
+              <div>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 block uppercase font-medium">Coordinates</span>
+                <span className="text-slate-900 dark:text-white font-semibold">{coordsStr}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 block uppercase font-medium">IANA Timezone</span>
+                <span className="text-slate-900 dark:text-white font-semibold truncate block" title={item.timezone}>
+                  {item.timezone}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 block uppercase font-medium">Dialing Pattern</span>
+                <span className="text-slate-900 dark:text-white font-semibold">+1 {item.code} NXX-XXXX</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Unified Executive Action Bar */}
-      <div className="mt-5 pt-4 border-t border-white/[0.08] flex items-center justify-between gap-3">
-        <a
-          href={mapLink(item)}
-          target="_blank"
-          rel="noreferrer"
-          className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 text-slate-200 hover:text-white flex items-center gap-2 font-semibold text-xs transition-all cursor-pointer active:scale-95 shadow-xs"
-        >
-          <ExternalLink className="size-3.5 text-cyan-400" />
-          <span>{t("map")} Coverage</span>
-        </a>
-
+      {/* Action Bar: Balanced and Uncluttered */}
+      <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-2.5 flex-wrap">
         <button
-          onClick={() => onCopyDossier(item)}
-          className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 via-primary to-blue-600 hover:brightness-110 text-primary-foreground font-bold text-xs flex items-center gap-2 shadow-[0_4px_16px_rgba(6,182,212,0.35)] transition-all cursor-pointer active:scale-95"
+          onClick={copySampleNumber}
+          className="px-3.5 py-2 rounded-2xl bg-white/80 dark:bg-slate-800/60 hover:bg-white dark:hover:bg-slate-800 border border-black/[0.08] dark:border-slate-700/60 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-2 text-xs font-mono transition-all cursor-pointer shadow-xs"
+          title={`Copy sample number ${samplePhoneNumber}`}
         >
-          <Copy className="size-3.5" />
-          <span>{t("copy")} Dossier</span>
+          {copiedSample ? (
+            <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+          ) : (
+            <PhoneCall className="size-3.5 text-slate-500 dark:text-slate-400" />
+          )}
+          <span className="font-medium">{copiedSample ? (isAr ? "تم النسخ" : "Copied!") : samplePhoneNumber}</span>
         </button>
+
+        <div className="flex items-center gap-2 ml-auto">
+          <button
+            onClick={() => onCopyDossier(item)}
+            className="px-3.5 py-2 rounded-2xl bg-white/80 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-black/[0.08] dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-semibold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+          >
+            <Copy className="size-3.5 text-slate-500 dark:text-slate-400" />
+            <span>{t("copy")}</span>
+          </button>
+
+          {onNavigateToRadar && (
+            <button
+              onClick={onNavigateToRadar}
+              className="px-4 py-2 rounded-2xl bg-primary hover:brightness-105 text-primary-foreground font-semibold text-xs flex items-center gap-1.5 shadow-md shadow-primary/20 transition-all cursor-pointer active:scale-95"
+              title="Open inside Operations Radar Map"
+            >
+              <Navigation className="size-3.5" />
+              <span>{isAr ? "عرض في الرادار" : "Radar Room"}</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-// Reusable Interactive Google Map Card for Area Code Geocoding
+// Reusable Interactive Leaflet Map Card for Area Code Geocoding
 function AreaCodeMapCard({
   item,
   t,
   isAr = false,
+  onNavigateToRadar,
 }: {
   item: AreaCode;
   t: (k: string) => string;
-  isAr?: boolean;
+  isAr?: boolean | undefined;
+  onNavigateToRadar?: (() => void) | undefined;
 }) {
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [mapType, setMapType] = useState<"m" | "k">("m"); // 'm' = roadmap, 'k' = satellite
-  const [zoomLevel, setZoomLevel] = useState(10);
-
-  // When item changes, reset selectedCity
-  useEffect(() => {
-    setSelectedCity(null);
-  }, [item.code]);
-
-  const targetCity = selectedCity || item.cities[0] || item.regionName;
-  const mapQuery =
-    item.country === "US"
-      ? `${targetCity}, ${item.regionName}`
-      : item.country === "CA"
-        ? `${targetCity}, ${item.regionName}, Canada`
-        : item.country === "TF"
-          ? "United States and Canada"
-          : `${item.regionName}`;
-
-  const embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&t=${mapType}&z=${zoomLevel}&ie=UTF8&iwloc=&output=embed`;
-  const externalMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`;
-
   return (
-    <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-b from-slate-900/90 via-slate-900/75 to-[#0b101d]/90 backdrop-blur-2xl border border-white/[0.12] hover:border-cyan-400/40 p-5 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.4)] hover:shadow-[0_25px_60px_rgba(6,182,212,0.18)] transition-all duration-300 flex flex-col justify-between h-full min-h-[440px]">
-      {/* Specular Ambient Glow */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
-      <div className="pointer-events-none absolute -top-28 -left-28 size-56 rounded-full bg-cyan-500/10 blur-3xl group-hover:bg-cyan-500/20 transition-all duration-700" />
-      <div className="pointer-events-none absolute -bottom-28 -right-28 size-56 rounded-full bg-indigo-500/10 blur-3xl group-hover:bg-indigo-500/20 transition-all duration-700" />
-
-      <div className="space-y-3.5 flex-1 flex flex-col">
-        {/* Header: Title & Map Layer Controls */}
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 shadow-inner">
-              <MapPin className="size-4" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h4 className="font-display font-extrabold text-white text-base tracking-tight leading-none">
-                  {isAr ? "خريطة التغطية الجغرافية" : "Geographic Coverage Map"}
-                </h4>
-                <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-md bg-white/10 text-cyan-300 border border-white/15">
-                  Google Maps™
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400 mt-0.5 truncate max-w-[240px] sm:max-w-xs">
-                {targetCity} • {item.regionName} ({item.region})
-              </p>
-            </div>
-          </div>
-
-          {/* Map Controls: Satellite Toggle & Zoom */}
-          <div className="flex items-center gap-1.5 bg-white/[0.04] p-1 rounded-xl border border-white/10">
-            <button
-              onClick={() => setMapType(mapType === "m" ? "k" : "m")}
-              className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                mapType === "k"
-                  ? "bg-primary text-primary-foreground shadow-xs"
-                  : "text-slate-300 hover:text-white"
-              }`}
-              title="Toggle Satellite / Terrain"
-            >
-              {mapType === "k" ? "Satellite" : "Roadmap"}
-            </button>
-            <div className="w-px h-3.5 bg-white/15" />
-            <button
-              onClick={() => setZoomLevel((z) => Math.min(z + 1, 16))}
-              className="px-2 py-0.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 text-xs font-bold transition-all cursor-pointer"
-              title="Zoom in"
-            >
-              +
-            </button>
-            <button
-              onClick={() => setZoomLevel((z) => Math.max(z - 1, 4))}
-              className="px-2 py-0.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 text-xs font-bold transition-all cursor-pointer"
-              title="Zoom out"
-            >
-              -
-            </button>
-          </div>
-        </div>
-
-        {/* Embedded Interactive Google Map */}
-        <div className="relative flex-1 w-full min-h-[260px] sm:min-h-[300px] rounded-2xl overflow-hidden border border-white/10 shadow-inner bg-slate-950/80">
-          <iframe
-            key={`${mapQuery}-${mapType}-${zoomLevel}`}
-            title={`Coverage Map for NPA ${item.code}`}
-            src={embedUrl}
-            className="w-full h-full border-0 absolute inset-0"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
-        </div>
-
-        {/* Rate Center City Quick Filters (if multiple cities exist) */}
-        {item.cities && item.cities.length > 1 && (
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-            <span className="text-[10px] font-mono font-semibold uppercase text-slate-400 shrink-0 mr-1">
-              Focus City:
-            </span>
-            <button
-              onClick={() => setSelectedCity(null)}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer shrink-0 border ${
-                selectedCity === null
-                  ? "bg-cyan-500/20 text-cyan-300 border-cyan-400/40 shadow-xs"
-                  : "bg-white/[0.04] text-slate-300 hover:bg-white/[0.08] border-white/10"
-              }`}
-            >
-              All ({item.cities.length})
-            </button>
-            {item.cities.slice(0, 6).map((city) => (
-              <button
-                key={city}
-                onClick={() => setSelectedCity(city)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer shrink-0 border ${
-                  selectedCity === city
-                    ? "bg-cyan-500/20 text-cyan-300 border-cyan-400/40 shadow-xs"
-                    : "bg-white/[0.04] text-slate-300 hover:bg-white/[0.08] border-white/10"
-                }`}
-              >
-                {city}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Footer / Telemetry Strip */}
-      <div className="mt-4 pt-3.5 border-t border-white/[0.08] flex items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 text-slate-400 text-[11px]">
-          <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Live Rate Center Geocoding Active</span>
-        </div>
-
-        <a
-          href={externalMapsUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="px-3.5 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 text-slate-200 hover:text-white flex items-center gap-1.5 font-semibold text-xs transition-all cursor-pointer active:scale-95 shadow-xs"
-        >
-          <ExternalLink className="size-3 text-cyan-400" />
-          <span>{isAr ? "فتح بكامل الشاشة" : "Full Screen Map"}</span>
-        </a>
-      </div>
-    </div>
+    <AreaCodeLeafletMap
+      item={item}
+      t={t}
+      isAr={isAr}
+      onNavigateToRadar={onNavigateToRadar}
+    />
   );
 }
 
@@ -617,30 +606,52 @@ function IndexPage() {
   // Navigation tabs
   const [activeTab, setActiveTab] = useState<TabType>("lookup");
 
-  // Sync tab with URL query param ?tab=
+  // Sync tab and search query with URL query params ?tab= and ?q=
   useEffect(() => {
     if (typeof window === "undefined") return;
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get("tab") as TabType | null;
+    const qParam = urlParams.get("q");
+
+    if (qParam && qParam.trim()) {
+      setSearchQuery(qParam.trim());
+      setHasSearched(true);
+      setActiveTab("lookup");
+    }
+
     const validTabs: TabType[] = ["lookup", "browse", "bulk", "map", "compare", "converter", "saved"];
     if (tabParam && validTabs.includes(tabParam)) {
       setActiveTab(tabParam);
-      heroResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setTimeout(() => {
+        if (mainContentRef.current) {
+          const headerOffset = 80;
+          const pos = mainContentRef.current.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+          window.scrollTo({ top: Math.max(0, pos), behavior: "smooth" });
+        }
+      }, 50);
     }
   }, []);
 
   const handleSelectTab = (tab: TabType) => {
     setActiveTab(tab);
+    logEngagementEvent({ action: "tab_switch", target: tab });
     if (tab !== "lookup") {
-      heroResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setTimeout(() => {
+        if (mainContentRef.current) {
+          const headerOffset = 80;
+          const pos = mainContentRef.current.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+          window.scrollTo({ top: Math.max(0, pos), behavior: "smooth" });
+        }
+      }, 50);
     }
   };
 
   // Search state
-  const [searchQuery, setSearchQuery] = useState("223");
-  const [hasSearched, setHasSearched] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
   const [selectedHeroMatchIdx, setSelectedHeroMatchIdx] = useState(0);
   const heroResultsRef = useRef<HTMLDivElement>(null);
+  const mainContentRef = useRef<HTMLElement>(null);
   const [now, setNow] = useState(new Date());
   const [copiedToast, setCopiedToast] = useState<string | null>(null);
 
@@ -713,17 +724,136 @@ function IndexPage() {
     setTimeout(() => setCopiedToast(null), 2500);
   };
 
+  // Live Firestore Area Codes Query with Fallback to Static Registry
+  const { data: dbAreaCodes } = useQuery({
+    queryKey: ["areaCodesList"],
+    queryFn: fetchAreaCodesFromDb,
+    enabled: isFirebaseConfigured,
+  });
+
+  const activeAreaCodes: AreaCode[] = useMemo(() => {
+    if (!dbAreaCodes || dbAreaCodes.length === 0) return AREA_CODES;
+    const dbCodesMap = new Map<string, AreaCode>();
+    for (const record of dbAreaCodes) {
+      dbCodesMap.set(record.code, adaptDbRecordToAreaCode(record));
+    }
+    const merged: AreaCode[] = [];
+    for (const base of AREA_CODES) {
+      if (dbCodesMap.has(base.code)) {
+        const db = dbCodesMap.get(base.code)!;
+        merged.push({
+          ...base,
+          ...db,
+          region: (db.region && db.region.length === 2) ? db.region : base.region,
+          regionName: db.regionName || base.regionName,
+          carrier: (db.carrier && db.carrier !== "Major NANP Carrier") ? db.carrier : base.carrier,
+          cities: (db.cities && db.cities.length > 0 && db.cities[0] !== db.regionName) ? db.cities : base.cities,
+          overlays: (db.overlays && db.overlays.length > 0) ? db.overlays : base.overlays,
+          timezone: db.timezone || base.timezone,
+          tzLabel: db.tzLabel || base.tzLabel,
+          country: db.country || base.country,
+        });
+        dbCodesMap.delete(base.code);
+      } else {
+        merged.push(base);
+      }
+    }
+    for (const extra of dbCodesMap.values()) {
+      merged.push(extra);
+    }
+    return merged.sort((a, b) => a.code.localeCompare(b.code));
+  }, [dbAreaCodes]);
+
+  const activeAreaCodeMap = useMemo(() => {
+    return activeAreaCodes.reduce((acc, a) => {
+      (acc[a.code] ||= []).push(a);
+      return acc;
+    }, {} as Record<string, AreaCode[]>);
+  }, [activeAreaCodes]);
+
   // Perform active lookup
   const lookupResult = useMemo(() => {
-    const res = lookup(searchQuery);
+    const res = lookup(searchQuery, activeAreaCodes, activeAreaCodeMap);
     return res;
-  }, [searchQuery]);
+  }, [searchQuery, activeAreaCodes, activeAreaCodeMap]);
 
   const activeHeroMatch = useMemo(() => {
     if (!lookupResult.matches || lookupResult.matches.length === 0) return null;
     const clamped = Math.min(selectedHeroMatchIdx, lookupResult.matches.length - 1);
     return lookupResult.matches[clamped] || lookupResult.matches[0];
   }, [lookupResult.matches, selectedHeroMatchIdx]);
+
+  // Scroll to search results cleanly below sticky header after layout settles
+  useEffect(() => {
+    if (!hasSearched || !searchQuery.trim()) return;
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const frame = requestAnimationFrame(() => {
+      timer = setTimeout(() => {
+        if (heroResultsRef.current) {
+          const headerOffset = 84; // 64px sticky header + 20px buffer
+          const elementPosition = heroResultsRef.current.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          window.scrollTo({
+            top: Math.max(0, offsetPosition),
+            behavior: "smooth",
+          });
+        }
+      }, 60);
+    });
+
+    return () => {
+      cancelAnimationFrame(frame);
+      if (timer) clearTimeout(timer);
+    };
+  }, [hasSearched, searchQuery]);
+
+  // Prevent duplicate telemetry logs on rapid clicks/re-renders
+  const lastLoggedSearchRef = useRef<{ query: string; time: number }>({ query: "", time: 0 });
+
+  const recordSearchTelemetry = async (q: string, source: "hero_search" | "direct_url" = "hero_search") => {
+    const trimmed = q.trim();
+    if (!trimmed) return;
+    const nowTime = Date.now();
+    if (
+      lastLoggedSearchRef.current.query.toLowerCase() === trimmed.toLowerCase() &&
+      nowTime - lastLoggedSearchRef.current.time < 3500
+    ) {
+      return;
+    }
+    lastLoggedSearchRef.current = { query: trimmed, time: nowTime };
+
+    const res = lookup(trimmed, activeAreaCodes, activeAreaCodeMap);
+    const matchesCount = res.matches?.length || 0;
+    const found = matchesCount > 0;
+
+    const velocityCheck = checkSearchVelocity();
+    const geo = await getClientGeoInfo();
+
+    // 1. Firebase Analytics event
+    trackAnalyticsEvent("search", {
+      search_term: trimmed,
+      results_count: matchesCount,
+      found,
+      source,
+      country: geo.country,
+      city: geo.city,
+      flagged_suspicious: velocityCheck.flagged,
+    });
+
+    // 2. Firestore searchLogs collection for Admin Dashboard
+    logSearchQuery({
+      query: trimmed,
+      resultsCount: matchesCount,
+      found,
+      source,
+      userLanguage: typeof navigator !== "undefined" ? navigator.language : undefined,
+      timezone: geo.timezone || (typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : undefined),
+      country: geo.country,
+      city: geo.city,
+      flaggedSuspicious: velocityCheck.flagged ? true : undefined,
+    });
+  };
 
   // Handle Search Submission
   const handleSearch = (q: string) => {
@@ -734,10 +864,9 @@ function IndexPage() {
     setHasSearched(true);
     saveRecent(trimmed);
     setActiveTab("lookup");
-    setTimeout(() => {
-      heroResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }, 60);
+    void recordSearchTelemetry(trimmed, "hero_search");
   };
+
 
   const copyDossierHandler = (item: AreaCode) => {
     const clock = localTime(item.timezone, now);
@@ -756,12 +885,17 @@ Dialing Rule: ${item.mandatory10Digit ? "10-Digit Mandatory" : "7/10-Digit"}
 Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
     navigator.clipboard.writeText(info);
     triggerToast(isAr ? `تم نسخ معلومات ${item.code}` : `Copied NPA ${item.code} dossier!`);
+    logEngagementEvent({
+      action: "copy_dossier",
+      target: item.code,
+      details: { region: item.region, country: item.country, carrier },
+    });
   };
 
   // Filtered browse dataset with complete column sorting and calling status
   const filteredBrowse = useMemo(() => {
     const q = browseQuery.trim().toLowerCase();
-    const list = AREA_CODES.filter((a) => {
+    const list = activeAreaCodes.filter((a) => {
       if (countryFilter !== "ALL" && a.country !== countryFilter) return false;
       if (tzFilter !== "ALL" && a.timezone !== tzFilter) return false;
 
@@ -920,48 +1054,74 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
     <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/25 selection:text-primary">
       <Header activeTab={activeTab} onSelectTab={handleSelectTab} />
 
-      {/* Hero Header */}
-      <section className={`relative overflow-hidden border-b border-border/50 transition-all duration-300 ${
-        hasSearched && searchQuery.trim() ? "pt-4 pb-6 sm:pt-6 sm:pb-8" : "pt-8 pb-12 md:pt-12 md:pb-16"
-      }`}>
-        {/* Glow ambient background */}
-        <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/10 blur-[130px] rounded-full" />
-        <div className="pointer-events-none absolute top-20 right-10 w-[400px] h-[300px] bg-secondary/15 blur-[120px] rounded-full" />
+      {/* Hero Header - Deep Enterprise Dark Overhaul */}
+      <section 
+        className={`relative overflow-hidden bg-slate-950 text-slate-100 border-b border-slate-800/80 transition-colors duration-150 ${
+          hasSearched && searchQuery.trim() ? "py-2.5 sm:py-3.5" : "pt-10 pb-12 md:pt-16 md:pb-14 min-h-[78vh] flex flex-col justify-between"
+        }`}
+      >
+        {/* Subtle mesh background gradients */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(30,58,138,0.30),rgba(15,23,42,0.85)_70%,rgba(2,6,23,1)_100%)]" />
 
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 text-center">
+        {/* Ambient electric glowing auras */}
+        <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[950px] h-[480px] bg-blue-600/15 blur-[140px] rounded-full" />
+        <div className="pointer-events-none absolute top-1/4 -right-16 w-[450px] h-[350px] bg-cyan-500/10 blur-[130px] rounded-full" />
+        <div className="pointer-events-none absolute bottom-12 -left-20 w-[450px] h-[350px] bg-indigo-600/15 blur-[130px] rounded-full" />
+
+        {/* Generated AI Holographic North America Telecom Map Background */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden flex items-center justify-center z-0 [mask-image:radial-gradient(ellipse_85%_75%_at_50%_48%,black_50%,transparent_100%)]">
+          <img 
+            src="/images/hero-na-map.jpg" 
+            alt="North America Telecommunications Network" 
+            className="w-full h-full object-cover object-center opacity-55 mix-blend-screen scale-105 select-none pointer-events-none transition-all duration-700" 
+          />
+        </div>
+
+        {/* High-contrast radial vignette behind central text so typography is 100% crisp */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_50%_46%,rgba(2,6,23,0.92)_0%,rgba(2,6,23,0.65)_50%,transparent_100%)] z-10" />
+
+        <div className="relative mx-auto max-w-5xl px-4 sm:px-6 text-center z-20 my-auto">
           {(!hasSearched || !searchQuery.trim()) && (
-            <div className="flex flex-col items-center mb-4">
-              <div className="size-20 sm:size-24 rounded-3xl p-1 bg-gradient-to-br from-cyan-500/30 via-primary/20 to-indigo-600/30 border border-cyan-400/40 shadow-[0_0_35px_rgba(6,182,212,0.35)] overflow-hidden mb-3.5 glow-ring animate-in fade-in zoom-in duration-500">
+            <div className="flex flex-col items-center mb-6">
+              <div className="size-20 sm:size-22 rounded-3xl p-1 bg-gradient-to-br from-blue-500/30 via-indigo-500/20 to-cyan-500/10 border border-blue-400/30 shadow-[0_0_30px_rgba(59,130,246,0.25)] overflow-hidden mb-4 animate-in fade-in zoom-in duration-500">
                 <img src="/entec-logo.jpg" alt="ENTEC Logo" className="w-full h-full object-cover rounded-[20px]" />
               </div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3.5 py-1 text-[11px] font-semibold text-primary shadow-sm glow-ring">
-                <Radio className="size-3 animate-pulse text-primary" />
-                <span>{isAr ? "محرك ذكاء الاتصالات المعتمد • 460+ مفتاح حقيقي" : "Authoritative Telecom Intel Hub • 460+ Real NPAs"}</span>
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-950/70 backdrop-blur-md px-4 py-1.5 text-xs font-semibold text-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.15)]">
+                <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>{isAr ? "المرجع الرسمي لذكاء شبكات الاتصال • 460+ مفتاح موثق" : "Authoritative Telecom Intelligence • 460+ Real NPAs"}</span>
+                <span className="text-blue-400/30 hidden sm:inline">|</span>
+                <span className="text-[11px] font-mono text-blue-300/70 hidden sm:inline">NANPA & FCC Synced</span>
               </div>
             </div>
           )}
 
-          <h1 className={`font-display font-extrabold tracking-tight text-gradient max-w-4xl mx-auto leading-[1.15] transition-all ${
-            hasSearched && searchQuery.trim()
-              ? "text-xl sm:text-2xl md:text-3xl mb-1"
-              : "text-3xl sm:text-5xl lg:text-6xl mb-3"
-          }`}>
-            {t("hero_title")}
-          </h1>
-
+          {/* Cinematic Split Headline (Landing View Only) */}
           {(!hasSearched || !searchQuery.trim()) && (
-            <p className="mt-2 sm:mt-4 max-w-2xl mx-auto text-sm sm:text-base text-muted-foreground leading-relaxed">
-              {t("hero_sub")}
-            </p>
+            <>
+              <h1 className="font-display tracking-tight max-w-4xl mx-auto leading-[1.12] text-3xl sm:text-5xl lg:text-6xl mb-4">
+                <span className="block text-xl sm:text-2xl lg:text-3xl font-medium text-slate-300 mb-2 tracking-normal">
+                  {isAr ? "كل مفتاح اتصال في أمريكا الشمالية،" : "Every North American area code,"}
+                </span>
+                <span className="block font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300">
+                  {isAr ? "مُحلل وموثق لحظياً." : "Decoded in Real Time."}
+                </span>
+              </h1>
+
+              <p className="mt-3 sm:mt-4 max-w-2xl mx-auto text-sm sm:text-base text-slate-300/80 leading-relaxed font-normal">
+                {isAr
+                  ? "استعلم فورياً عن 460+ كود أمريكي وكندي، احسب نوافذ اتصال TCPA الآمنة قانونياً، واكشف أرقام الاحتيال الدولي في أجزاء من الثانية."
+                  : "Instant dossier lookup for 460+ US, Canadian & Caribbean area codes. Calculate statutory TCPA calling hours, detect offshore toll fraud, and cleanse number lists."}
+              </p>
+            </>
           )}
 
-          {/* Unified Search Box */}
+          {/* Unified Search Box - Apple/Linear Dark Spotlight Glass */}
           <div className={`mx-auto max-w-3xl transition-all ${
-            hasSearched && searchQuery.trim() ? "mt-3 sm:mt-4" : "mt-6 sm:mt-8"
+            hasSearched && searchQuery.trim() ? "mt-0" : "mt-8 sm:mt-10"
           }`}>
-            <div className="glass-panel p-1.5 sm:p-2.5 flex flex-row items-center gap-1.5 sm:gap-2 glow-ring rounded-2xl">
+            <div className="p-1.5 sm:p-2 flex flex-row items-center gap-1.5 sm:gap-2 rounded-2xl bg-slate-900/90 backdrop-blur-xl border border-slate-700/80 hover:border-blue-500/60 shadow-[0_12px_40px_rgba(0,0,0,0.6)] hover:shadow-[0_16px_50px_rgba(2,132,199,0.2)] transition-all">
               <div className="relative flex-1 min-w-0 flex items-center">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 sm:size-5 text-muted-foreground pointer-events-none" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 sm:size-5 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
                   value={searchQuery}
@@ -970,7 +1130,7 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                     if (e.key === "Enter") handleSearch(searchQuery);
                   }}
                   placeholder={t("search_ph")}
-                  className="w-full bg-transparent pl-9 sm:pl-11 pr-8 sm:pr-10 py-2 sm:py-3 text-sm sm:text-base font-medium text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+                  className="w-full bg-transparent pl-10 sm:pl-11 pr-8 sm:pr-10 py-2.5 sm:py-3 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 focus:outline-none"
                 />
                 {searchQuery && (
                   <button
@@ -978,7 +1138,7 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                       setSearchQuery("");
                       setHasSearched(false);
                     }}
-                    className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/50 cursor-pointer"
+                    className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white rounded-full hover:bg-slate-800/80 cursor-pointer transition-colors"
                   >
                     <X className="size-3.5 sm:size-4" />
                   </button>
@@ -987,235 +1147,99 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
 
               <button
                 onClick={() => handleSearch(searchQuery)}
-                className="inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-6 py-2 sm:py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-xs sm:text-sm shadow-md transition-all hover:brightness-110 active:scale-95 shrink-0 cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-blue-500/25 transition-all hover:brightness-110 active:scale-95 shrink-0 cursor-pointer"
               >
                 <Sparkles className="size-3.5 sm:size-4" />
                 <span>{t("search_btn")}</span>
               </button>
             </div>
-          </div>
 
-          {/* Instant Hero Analysis Results */}
-          {hasSearched && searchQuery.trim() && (
-            <div
-              ref={heroResultsRef}
-              id="hero-results"
-              className="mt-4 sm:mt-6 max-w-6xl mx-auto text-start animate-in fade-in slide-in-from-top-3 duration-300"
-            >
-              {/* Phone Banner if Phone Detected */}
-              {lookupResult.kind === "phone" && (
-                <div className="glass-panel mb-3 sm:mb-4 p-3 sm:p-4 border-primary/40 flex flex-wrap items-center justify-between gap-3 rounded-2xl glow-ring">
-                  <div>
-                    <span className="text-[11px] uppercase tracking-wider font-semibold text-primary">
-                      {isAr ? "رقم هاتف متكامل تم تحليله" : "Normalized Telecommunications Record"}
-                    </span>
-                    <div className="mt-0.5 flex items-baseline gap-2.5">
-                      <span className="font-display text-xl sm:text-2xl font-extrabold text-foreground">
-                        {lookupResult.normalizedPhone}
-                      </span>
-                      <span className="text-xs font-mono text-muted-foreground">
-                        {lookupResult.e164}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(lookupResult.e164 || "");
-                        triggerToast(isAr ? "تم نسخ الرقم E.164" : "Copied E.164 phone number!");
-                      }}
-                      className="px-3 py-1.5 rounded-xl bg-card hover:bg-primary/20 border border-border text-xs font-semibold text-foreground flex items-center gap-1 transition-colors cursor-pointer"
-                    >
-                      <Copy className="size-3" />
-                      <span>{isAr ? "نسخ E.164" : "Copy E.164"}</span>
-                    </button>
-                    <a
-                      href={`tel:${lookupResult.e164}`}
-                      className="px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-1 transition-all hover:brightness-110"
-                    >
-                      <PhoneCall className="size-3" />
-                      <span>{isAr ? "اتصال" : "Call"}</span>
-                    </a>
-                  </div>
-                </div>
-              )}
-
-              {/* Prefix Banner if 6-digit prefix detected */}
-              {lookupResult.kind === "prefix" && (
-                <div className="glass-panel mb-3 sm:mb-4 p-3 sm:p-4 border-primary/40 flex flex-wrap items-center justify-between gap-3 rounded-2xl glow-ring">
-                  <div>
-                    <span className="text-[11px] uppercase tracking-wider font-semibold text-primary">
-                      {isAr ? "بادئة المقسم المركزي (NPA-NXX Prefix)" : "Local Central Office Rate Center Prefix"}
-                    </span>
-                    <div className="mt-0.5 flex items-baseline gap-2.5">
-                      <span className="font-display text-xl sm:text-2xl font-extrabold text-foreground">
-                        {lookupResult.normalizedPhone}
-                      </span>
-                      <span className="text-xs font-mono text-muted-foreground">
-                        NPA: {lookupResult.npa} • Exchange: {lookupResult.nxx}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-primary/15 text-primary border border-primary/30">
-                      LERG Exchange Active
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Dossier Header */}
-              <div className="flex items-center justify-between mb-2 px-1">
-                <div className="flex items-center gap-2">
-                  <h2 className="font-display text-base sm:text-lg font-bold text-foreground flex items-center gap-1.5">
-                    <Sparkles className="size-3.5 sm:size-4 text-primary" />
-                    <span>{isAr ? "نتيجة التحليل المباشر" : "Instant Analysis Dossier"}</span>
-                    <span className="text-[11px] font-semibold px-2 py-0.2 rounded-full bg-primary/20 text-primary border border-primary/30">
-                      {lookupResult.matches.length} {lookupResult.matches.length === 1 ? (isAr ? "نتيجة" : "match") : (isAr ? "نتائج" : "matches")}
-                    </span>
-                  </h2>
-                </div>
-
-                <div className="flex items-center gap-1.5">
-                  {lookupResult.matches.length > 0 && (
-                    <button
-                      onClick={() => {
-                        const rows = lookupResult.matches.map((m) => ({
-                          code: m.code,
-                          state: m.regionName,
-                          cities: m.cities.join(", "),
-                          carrier: m.carrier || carrierFor(m.code, m.country),
-                          timezone: m.tzLabel,
-                          risk: m.risk,
-                        }));
-                        exportCsv(rows, `entec-lookup-${searchQuery}.csv`);
-                        triggerToast(isAr ? "تم تصدير النتائج CSV" : "Exported CSV!");
-                      }}
-                      className="px-2.5 py-1 rounded-lg border border-border/80 bg-card hover:bg-accent text-[11px] font-medium text-foreground flex items-center gap-1 transition-colors cursor-pointer"
-                    >
-                      <Download className="size-3" />
-                      <span>{t("export_csv")}</span>
-                    </button>
-                  )}
+            {/* Quick Example Searches */}
+            {(!hasSearched || !searchQuery.trim()) && (
+              <div className="mt-4 flex items-center justify-center gap-1.5 flex-wrap text-xs text-slate-300">
+                <span className="font-semibold text-slate-300 flex items-center gap-1">
+                  <Sparkles className="size-3 text-cyan-400" />
+                  <span>{isAr ? "شائع للبحث السريع:" : "Trending Searches:"}</span>
+                </span>
+                {[
+                  { code: "212", label: "212 (NYC)" },
+                  { code: "310", label: "310 (LA)" },
+                  { code: "312", label: "312 (Chicago)" },
+                  { code: "415", label: "415 (SF)" },
+                  { code: "305", label: "305 (Miami)" },
+                  { code: "416", label: "416 (Toronto)" },
+                  { code: "800", label: "800 (Toll-Free)" },
+                  { code: "876", label: "876 (Fraud Risk)", isRisk: true },
+                ].map((chip) => (
                   <button
-                    onClick={() => {
-                      setSearchQuery("");
-                      setHasSearched(false);
-                    }}
-                    className="p-1 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-card"
-                    title="Close results"
+                    key={chip.code}
+                    type="button"
+                    onClick={() => handleSearch(chip.code)}
+                    className={`px-2.5 py-1 rounded-full border text-[11px] font-mono font-medium transition-all cursor-pointer shadow-2xs active:scale-95 ${chip.isRisk
+                        ? "bg-amber-500/15 border-amber-500/40 text-amber-300 hover:bg-amber-500/25"
+                        : "bg-slate-800/80 hover:bg-blue-900/40 hover:text-blue-200 hover:border-blue-500/40 border-slate-700/80 text-slate-200"
+                      }`}
                   >
-                    <X className="size-3.5" />
+                    {chip.label}
                   </button>
+                ))}
+              </div>
+            )}
+
+            {/* Live Stats Strip (Landing View) */}
+            {(!hasSearched || !searchQuery.trim()) && (
+              <div className="mt-8 pt-6 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto text-left" dir="ltr">
+                <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-900/75 backdrop-blur-md border border-slate-800/80 hover:border-blue-500/40 transition-colors">
+                  <div className="size-8 rounded-lg bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0">
+                    <Radio className="size-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs sm:text-sm font-bold font-mono text-white leading-none">460+ NPAs</div>
+                    <div className="text-[10px] text-slate-400 mt-1">{isAr ? "سجل نانبا المعتمد" : "Official Registry"}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-900/75 backdrop-blur-md border border-slate-800/80 hover:border-emerald-500/40 transition-colors">
+                  <div className="size-8 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+                    <Clock className="size-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs sm:text-sm font-bold font-mono text-white leading-none">9 Timezones</div>
+                    <div className="text-[10px] text-slate-400 mt-1">{isAr ? "رادار التوقيت الحي" : "Live Clocks"}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-900/75 backdrop-blur-md border border-slate-800/80 hover:border-indigo-500/40 transition-colors">
+                  <div className="size-8 rounded-lg bg-indigo-500/15 text-indigo-400 flex items-center justify-center shrink-0">
+                    <ShieldCheck className="size-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs sm:text-sm font-bold font-mono text-white leading-none">Zero Fines</div>
+                    <div className="text-[10px] text-slate-400 mt-1">{isAr ? "حماية الامتثال" : "TCPA Safe Harbor"}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-900/75 backdrop-blur-md border border-slate-800/80 hover:border-amber-500/40 transition-colors">
+                  <div className="size-8 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0">
+                    <Zap className="size-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs sm:text-sm font-bold font-mono text-white leading-none">&lt; 1 ms</div>
+                    <div className="text-[10px] text-slate-400 mt-1">{isAr ? "سرعة الاستعلام" : "Instant Resolve"}</div>
+                  </div>
                 </div>
               </div>
-
-              {/* Empty State */}
-              {lookupResult.matches.length === 0 && (
-                <div className="glass-panel p-6 sm:p-8 text-center rounded-2xl">
-                  <HelpCircle className="size-8 mx-auto text-muted-foreground mb-2 opacity-60" />
-                  <h3 className="text-base font-bold text-foreground">{t("no_results")}</h3>
-                  <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1">
-                    {isAr
-                      ? `لم نتمكن من العثور على مفتاح أو ولاية أو مدينة تطابق "${searchQuery}". جرب البحث برمز مكون من 3 أرقام مثل 212 أو 484 أو اسم ولاية.`
-                      : `No registered North American area code matches "${searchQuery}". Try a 3-digit NPA like 212, 484, or a city name like Miami.`}
-                  </p>
-                  <div className="mt-3 flex justify-center gap-2 flex-wrap">
-                    <button
-                      onClick={() => handleSearch("223")}
-                      className="px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold cursor-pointer"
-                    >
-                      223 (PA Line)
-                    </button>
-                    <button
-                      onClick={() => handleSearch("212")}
-                      className="px-3 py-1.5 rounded-xl bg-card hover:bg-muted text-foreground text-xs font-semibold border border-border cursor-pointer"
-                    >
-                      212 (Manhattan)
-                    </button>
-                    <button
-                      onClick={() => handleSearch("800")}
-                      className="px-3 py-1.5 rounded-xl bg-card hover:bg-muted text-foreground text-xs font-semibold border border-border cursor-pointer"
-                    >
-                      800 (Toll-Free)
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Side-by-Side: Card on Left, Google Map on Right */}
-              {lookupResult.matches.length > 0 && activeHeroMatch && (
-                <div className="space-y-4">
-                  {/* Selector Pills if Multiple Matches */}
-                  {lookupResult.matches.length > 1 && (
-                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-                      <span className="text-xs font-mono font-bold uppercase text-slate-400 shrink-0">
-                        {isAr ? "المفاتيح المطابقة:" : "Matching Codes:"}
-                      </span>
-                      {lookupResult.matches.map((m, idx) => (
-                        <button
-                          key={`${m.code}-${m.region}`}
-                          onClick={() => setSelectedHeroMatchIdx(idx)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer shrink-0 border ${
-                            selectedHeroMatchIdx === idx
-                              ? "bg-cyan-500/25 text-cyan-300 border-cyan-400/50 shadow-md shadow-cyan-500/20"
-                              : "bg-card hover:bg-card/80 border-border text-slate-300"
-                          }`}
-                        >
-                          {m.code} • {m.region}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 items-stretch">
-                    {/* Left Column: Dossier Card */}
-                    <AreaCodeCard
-                      key={`${activeHeroMatch.code}-${activeHeroMatch.region}`}
-                      item={activeHeroMatch}
-                      now={now}
-                      isFav={favorites.includes(activeHeroMatch.code)}
-                      onToggleFavorite={toggleFavorite}
-                      onCopyDossier={copyDossierHandler}
-                      onInspectCode={handleSearch}
-                      t={t}
-                    />
-
-                    {/* Right Column: Google Maps Interactive Geocoding */}
-                    <AreaCodeMapCard
-                      key={`hero-map-${activeHeroMatch.code}-${activeHeroMatch.region}`}
-                      item={activeHeroMatch}
-                      t={t}
-                      isAr={isAr}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {lookupResult.matches.length > 4 && (
-                <div className="mt-2.5 text-center">
-                  <button
-                    onClick={() => {
-                      setActiveTab("lookup");
-                      document.getElementById("main-tabs")?.scrollIntoView({ behavior: "smooth" });
-                    }}
-                    className="text-xs text-primary font-semibold hover:underline cursor-pointer"
-                  >
-                    {isAr
-                      ? `عرض جميع الـ ${lookupResult.matches.length} مفتاح في القسم المفصل بالأسفل ↓`
-                      : `View all ${lookupResult.matches.length} matches in detailed directory below ↓`}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </section>
 
-      {/* Target Anchor for Smooth Scrolling */}
-      <div ref={heroResultsRef} className="scroll-mt-20" />
+        {/* Live Search Ticker Tape on Hero Base */}
+        {(!hasSearched || !searchQuery.trim()) && (
+          <div className="mt-8 relative z-20">
+            <LiveTicker onSelectCode={handleSearch} isAr={isAr} dark={true} />
+          </div>
+        )}
+      </section>
 
       {/* Toast Notification */}
       {copiedToast && (
@@ -1225,172 +1249,567 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
       )}
 
       {/* Main Body Content */}
-      <main className="flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 py-8">
+      <main ref={mainContentRef} className={`flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 ${hasSearched && searchQuery.trim() ? "py-4 sm:py-5" : "py-8"}`}>
         {/* =========================================================================
             TAB 1: INSTANT LOOKUP
         ========================================================================= */}
         {activeTab === "lookup" && (
-          <div className="space-y-6">
-            {/* Phone Number Banner if Phone Detected */}
-            {lookupResult.kind === "phone" && (
-              <div className="glass-panel p-5 border-primary/40 flex flex-wrap items-center justify-between gap-4 rounded-2xl">
-                <div>
-                  <span className="text-xs uppercase tracking-wider font-semibold text-primary">
-                    {isAr ? "رقم هاتف متكامل تم تحليله" : "Normalized Telecommunications Record"}
-                  </span>
-                  <div className="mt-1 flex items-baseline gap-3">
-                    <span className="font-display text-2xl sm:text-3xl font-extrabold text-foreground">
-                      {lookupResult.normalizedPhone}
-                    </span>
-                    <span className="text-sm font-mono text-muted-foreground">
-                      {lookupResult.e164}
-                    </span>
-                  </div>
-                </div>
+          <div className="space-y-6 sm:space-y-8">
+            {hasSearched && searchQuery.trim() ? (
+              /* =========================================================================
+                 SEARCH RESULTS VIEW (ACTIVE SEARCH)
+              ========================================================================= */
+              <div ref={heroResultsRef} className="scroll-mt-24 space-y-4 animate-in fade-in duration-300">
+                {/* Phone Number Banner if Phone Detected */}
+                {lookupResult.kind === "phone" && (
+                  <div className="glass-panel p-4 sm:p-5 border-primary/40 flex flex-wrap items-center justify-between gap-4 rounded-2xl glow-ring">
+                    <div>
+                      <span className="text-xs uppercase tracking-wider font-semibold text-primary">
+                        {isAr ? "رقم هاتف متكامل تم تحليله" : "Normalized Telecommunications Record"}
+                      </span>
+                      <div className="mt-1 flex items-baseline gap-3">
+                        <span className="font-display text-2xl sm:text-3xl font-extrabold text-foreground">
+                          {lookupResult.normalizedPhone}
+                        </span>
+                        <span className="text-sm font-mono text-muted-foreground">
+                          {lookupResult.e164}
+                        </span>
+                      </div>
+                    </div>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(lookupResult.e164 || "");
-                      triggerToast(isAr ? "تم نسخ الرقم E.164" : "Copied E.164 phone number!");
-                    }}
-                    className="px-3.5 py-2 rounded-xl bg-card hover:bg-primary/20 border border-border text-xs font-semibold text-foreground flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <Copy className="size-3.5" />
-                    <span>{isAr ? "نسخ E.164" : "Copy E.164"}</span>
-                  </button>
-                  <a
-                    href={`tel:${lookupResult.e164}`}
-                    className="px-3.5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-1.5 transition-all hover:brightness-110"
-                  >
-                    <PhoneCall className="size-3.5" />
-                    <span>{isAr ? "اتصال" : "Call"}</span>
-                  </a>
-                </div>
-              </div>
-            )}
-
-            {/* Results Header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="font-display text-xl font-bold text-foreground flex items-center gap-2">
-                  <span>{isAr ? "نتائج الاستعلام اللحظي" : "Instant Intelligence Dossier"}</span>
-                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary/15 text-primary">
-                    {lookupResult.matches.length} {lookupResult.matches.length === 1 ? "match" : "matches"}
-                  </span>
-                </h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {isAr
-                    ? "بيانات التوقيت والولاية والمشغل ونوافذ الاتصال القانونية المعتمدة"
-                    : "Jurisdiction, TCPA safe calling windows, facility carriers and live local clocks."}
-                </p>
-              </div>
-
-              {lookupResult.matches.length > 0 && (
-                <button
-                  onClick={() => {
-                    const rows = lookupResult.matches.map((m) => ({
-                      code: m.code,
-                      state: m.regionName,
-                      cities: m.cities.join(", "),
-                      carrier: m.carrier || carrierFor(m.code, m.country),
-                      timezone: m.tzLabel,
-                      risk: m.risk,
-                      mandatory10Digit: m.mandatory10Digit,
-                    }));
-                    exportCsv(rows, `entec-lookup-${searchQuery}.csv`);
-                    triggerToast(isAr ? "تم تصدير النتائج" : "Exported lookup results!");
-                  }}
-                  className="px-3 py-1.5 rounded-lg border border-border/80 bg-card hover:bg-accent text-xs font-medium text-foreground flex items-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <Download className="size-3.5" />
-                  <span>{t("export_csv")}</span>
-                </button>
-              )}
-            </div>
-
-            {/* Empty State */}
-            {lookupResult.matches.length === 0 && (
-              <div className="glass-panel p-12 text-center rounded-2xl">
-                <HelpCircle className="size-12 mx-auto text-muted-foreground mb-3 opacity-60" />
-                <h3 className="text-lg font-bold text-foreground">{t("no_results")}</h3>
-                <p className="text-sm text-muted-foreground max-w-md mx-auto mt-1">
-                  {isAr
-                    ? `لم نتمكن من العثور على مفتاح أو ولاية أو مدينة تطابق "${searchQuery}". جرب البحث برمز مكون من 3 أرقام مثل 212 أو 484 أو اسم ولاية.`
-                    : `No registered North American area code matches "${searchQuery}". Try a 3-digit NPA like 212, 484, or a city name like Miami.`}
-                </p>
-                <div className="mt-5 flex justify-center gap-2 flex-wrap">
-                  <button
-                    onClick={() => handleSearch("223")}
-                    className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold cursor-pointer"
-                  >
-                    223 (PA Line)
-                  </button>
-                  <button
-                    onClick={() => handleSearch("212")}
-                    className="px-4 py-2 rounded-xl bg-card hover:bg-muted text-foreground text-xs font-semibold border border-border cursor-pointer"
-                  >
-                    212 (Manhattan)
-                  </button>
-                  <button
-                    onClick={() => handleSearch("416")}
-                    className="px-4 py-2 rounded-xl bg-card hover:bg-muted text-foreground text-xs font-semibold border border-border cursor-pointer"
-                  >
-                    416 (Toronto)
-                  </button>
-                  <button
-                    onClick={() => handleSearch("800")}
-                    className="px-4 py-2 rounded-xl bg-card hover:bg-muted text-foreground text-xs font-semibold border border-border cursor-pointer"
-                  >
-                    800 (Toll-Free)
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Results: Side-by-side Card on Left, Google Map on Right */}
-            {lookupResult.matches.length > 0 && activeHeroMatch && (
-              <div className="space-y-4">
-                {lookupResult.matches.length > 1 && (
-                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-                    <span className="text-xs font-mono font-bold uppercase text-slate-400 shrink-0">
-                      {isAr ? "المفاتيح المطابقة:" : "Matching Codes:"}
-                    </span>
-                    {lookupResult.matches.map((m, idx) => (
+                    <div className="flex items-center gap-2">
                       <button
-                        key={`tab-m-${m.code}-${m.region}`}
-                        onClick={() => setSelectedHeroMatchIdx(idx)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer shrink-0 border ${
-                          selectedHeroMatchIdx === idx
-                            ? "bg-cyan-500/25 text-cyan-300 border-cyan-400/50 shadow-md shadow-cyan-500/20"
-                            : "bg-card hover:bg-card/80 border-border text-slate-300"
-                        }`}
+                        onClick={() => {
+                          navigator.clipboard.writeText(lookupResult.e164 || "");
+                          triggerToast(isAr ? "تم نسخ الرقم E.164" : "Copied E.164 phone number!");
+                          logEngagementEvent({
+                            action: "copy_phone",
+                            target: lookupResult.e164 || lookupResult.normalizedPhone,
+                          });
+                        }}
+                        className="px-3.5 py-2 rounded-xl bg-card hover:bg-primary/20 border border-border text-xs font-semibold text-foreground flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
-                        {m.code} • {m.region}
+                        <Copy className="size-3.5" />
+                        <span>{isAr ? "نسخ E.164" : "Copy E.164"}</span>
                       </button>
-                    ))}
+                      <a
+                        href={`tel:${lookupResult.e164}`}
+                        className="px-3.5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-1.5 transition-all hover:brightness-110 active:scale-95"
+                      >
+                        <PhoneCall className="size-3.5" />
+                        <span>{isAr ? "اتصال" : "Call"}</span>
+                      </a>
+                    </div>
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 items-stretch">
-                  <AreaCodeCard
-                    key={`tab-card-${activeHeroMatch.code}-${activeHeroMatch.region}`}
-                    item={activeHeroMatch}
-                    now={now}
-                    isFav={favorites.includes(activeHeroMatch.code)}
-                    onToggleFavorite={toggleFavorite}
-                    onCopyDossier={copyDossierHandler}
-                    onInspectCode={handleSearch}
-                    t={t}
-                  />
+                {/* Prefix Banner if 6-digit prefix detected */}
+                {lookupResult.kind === "prefix" && (
+                  <div className="glass-panel p-4 sm:p-5 border-primary/40 flex flex-wrap items-center justify-between gap-4 rounded-2xl glow-ring">
+                    <div>
+                      <span className="text-xs uppercase tracking-wider font-semibold text-primary">
+                        {isAr ? "بادئة المقسم المركزي (NPA-NXX Prefix)" : "Local Central Office Rate Center Prefix"}
+                      </span>
+                      <div className="mt-1 flex items-baseline gap-3">
+                        <span className="font-display text-2xl sm:text-3xl font-extrabold text-foreground">
+                          {lookupResult.normalizedPhone}
+                        </span>
+                        <span className="text-sm font-mono text-muted-foreground">
+                          NPA: {lookupResult.npa} • Exchange: {lookupResult.nxx}
+                        </span>
+                      </div>
+                    </div>
 
-                  <AreaCodeMapCard
-                    key={`tab-map-${activeHeroMatch.code}-${activeHeroMatch.region}`}
-                    item={activeHeroMatch}
-                    t={t}
-                    isAr={isAr}
-                  />
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-primary/15 text-primary border border-primary/30">
+                        LERG Exchange Active
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Results Header */}
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div>
+                    <h2 className="font-display text-xl font-bold text-foreground flex items-center gap-2">
+                      <Sparkles className="size-4 text-primary" />
+                      <span>{isAr ? "نتيجة التحليل المباشر" : "Instant Intelligence Dossier"}</span>
+                      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary/15 text-primary">
+                        {lookupResult.matches.length} {lookupResult.matches.length === 1 ? (isAr ? "نتيجة" : "match") : (isAr ? "نتائج" : "matches")}
+                      </span>
+                    </h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {isAr
+                        ? "بيانات التوقيت والولاية والمشغل ونوافذ الاتصال القانونية المعتمدة"
+                        : "Jurisdiction, TCPA safe calling windows, facility carriers and live local clocks."}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {lookupResult.matches.length > 0 && (
+                      <button
+                        onClick={() => {
+                          const rows = lookupResult.matches.map((m) => ({
+                            code: m.code,
+                            state: m.regionName,
+                            cities: m.cities.join(", "),
+                            carrier: m.carrier || carrierFor(m.code, m.country),
+                            timezone: m.tzLabel,
+                            risk: m.risk,
+                            mandatory10Digit: m.mandatory10Digit,
+                          }));
+                          exportCsv(rows, `entec-lookup-${searchQuery}.csv`);
+                          triggerToast(isAr ? "تم تصدير النتائج" : "Exported lookup results!");
+                        }}
+                        className="px-3 py-1.5 rounded-xl border border-border/80 bg-card hover:bg-accent text-xs font-medium text-foreground flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <Download className="size-3.5" />
+                        <span>{t("export_csv")}</span>
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        setSearchQuery("");
+                        setHasSearched(false);
+                      }}
+                      className="px-3 py-1.5 rounded-xl border border-border/80 bg-card hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-400 text-xs font-medium text-muted-foreground flex items-center gap-1.5 transition-colors cursor-pointer"
+                      title={isAr ? "إلغاء البحث والعودة للدليل" : "Clear search and return to landing overview"}
+                    >
+                      <X className="size-3.5" />
+                      <span>{isAr ? "إلغاء البحث" : "Clear Search"}</span>
+                    </button>
+                  </div>
                 </div>
+
+                {/* Empty State when Search Yields 0 Matches */}
+                {lookupResult.matches.length === 0 && (
+                  <div className="glass-panel p-8 sm:p-12 text-center rounded-3xl border border-dashed border-border/90">
+                    <div className="size-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center mx-auto mb-4 shadow-inner">
+                      <HelpCircle className="size-8 opacity-80" />
+                    </div>
+                    <h3 className="text-xl font-bold text-foreground">
+                      {isAr ? `لا توجد نتائج مطابقة لـ "${searchQuery}"` : `No matching records found for "${searchQuery}"`}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground max-w-lg mx-auto mt-2 leading-relaxed">
+                      {isAr
+                        ? `لم نتمكن من العثور على مفتاح أو ولاية أو مدينة تطابق هذا الإدخال. جرب البحث برمز مكون من 3 أرقام مثل 212 أو 310 أو 800 أو اسم ولاية.`
+                        : `No registered North American area code matches this query. Try a 3-digit NPA (e.g. 212, 310, 800), full phone number, or state/city name.`}
+                    </p>
+                    <div className="mt-5 flex justify-center gap-2 flex-wrap">
+                      <button
+                        onClick={() => handleSearch("212")}
+                        className="px-3.5 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold cursor-pointer active:scale-95"
+                      >
+                        212 (Manhattan NY)
+                      </button>
+                      <button
+                        onClick={() => handleSearch("310")}
+                        className="px-3.5 py-1.5 rounded-xl bg-card hover:bg-muted text-foreground text-xs font-semibold border border-border cursor-pointer active:scale-95"
+                      >
+                        310 (Los Angeles CA)
+                      </button>
+                      <button
+                        onClick={() => handleSearch("800")}
+                        className="px-3.5 py-1.5 rounded-xl bg-card hover:bg-muted text-foreground text-xs font-semibold border border-border cursor-pointer active:scale-95"
+                      >
+                        800 (Toll-Free)
+                      </button>
+                      <button
+                        onClick={() => handleSearch("416")}
+                        className="px-3.5 py-1.5 rounded-xl bg-card hover:bg-muted text-foreground text-xs font-semibold border border-border cursor-pointer active:scale-95"
+                      >
+                        416 (Toronto ON)
+                      </button>
+                    </div>
+                    <div className="mt-6 pt-4 border-t border-border/50">
+                      <button
+                        onClick={() => {
+                          setSearchQuery("");
+                          setHasSearched(false);
+                        }}
+                        className="text-xs text-primary hover:underline font-semibold cursor-pointer"
+                      >
+                        {isAr ? "← العودة إلى ملخص ودليل الصفحة الرئيسية" : "← Return to Homepage Overview & Directory"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Results: Side-by-side Card on Left, Leaflet Map on Right */}
+                {lookupResult.matches.length > 0 && activeHeroMatch && (
+                  <div className="space-y-4">
+                    {lookupResult.matches.length > 1 && (
+                      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                        <span className="text-xs font-mono font-bold uppercase text-slate-400 shrink-0">
+                          {isAr ? "المفاتيح المطابقة:" : "Matching Codes:"}
+                        </span>
+                        {lookupResult.matches.map((m, idx) => (
+                          <button
+                            key={`tab-m-${m.code}-${m.region}`}
+                            onClick={() => setSelectedHeroMatchIdx(idx)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer shrink-0 border ${selectedHeroMatchIdx === idx
+                                ? "bg-primary/20 text-primary border-primary/40 shadow-xs"
+                                : "bg-card hover:bg-card/80 border-border text-foreground/80"
+                              }`}
+                          >
+                            {m.code} • {m.region}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 items-stretch">
+                      <AreaCodeCard
+                        key={`tab-card-${activeHeroMatch.code}-${activeHeroMatch.region}`}
+                        item={activeHeroMatch}
+                        now={now}
+                        isFav={favorites.includes(activeHeroMatch.code)}
+                        onToggleFavorite={toggleFavorite}
+                        onCopyDossier={copyDossierHandler}
+                        onInspectCode={handleSearch}
+                        onNavigateToRadar={() => setActiveTab("map")}
+                        isAr={isAr}
+                        t={t}
+                      />
+
+                      <AreaCodeMapCard
+                        key={`tab-map-${activeHeroMatch.code}-${activeHeroMatch.region}`}
+                        item={activeHeroMatch}
+                        t={t}
+                        isAr={isAr}
+                        onNavigateToRadar={() => setActiveTab("map")}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* =========================================================================
+                 COMPREHENSIVE LANDING PAGE CONTENT (EDITORIAL HIERARCHY)
+              ========================================================================= */
+              <div className="space-y-12 sm:space-y-16 animate-in fade-in duration-500">
+
+                {/* SECTION 2: HIGH-VOLUME & TRENDING AREA CODES GRID */}
+                <div>
+                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-6">
+                    <div>
+                      <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary mb-1">
+                        <Sparkles className="size-3.5" />
+                        <span>{isAr ? "المراكز الهاتفية الأكثر نشاطاً" : "High-Volume Telephony Hubs"}</span>
+                      </div>
+                      <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground tracking-tight">
+                        {isAr ? "ساعات حية مباشرة للمناطق الكبرى" : "Explore Live Telecommunications Clocks"}
+                      </h2>
+                    </div>
+                    <p className="text-xs text-muted-foreground max-w-sm">
+                      {isAr
+                        ? "ساعات حية دقيقة ومطابقة قانونية لحظية لنوافذ الاتصال لكل ولاية ومقاطعة."
+                        : "Live local clocks, dominant carriers, and TCPA legality computed in real time."}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {POPULAR_NPAS.map((p) => {
+                      const item = activeAreaCodeMap[p.code]?.[0];
+                      if (!item) return null;
+                      const clock = localTime(item.timezone, now);
+                      const win = callingWindow(clock.hour);
+
+                      return (
+                        <div
+                          key={p.code}
+                          className="group relative rounded-2xl bg-card/80 dark:bg-slate-900/80 border border-border/80 hover:border-primary/50 p-4.5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-3"
+                        >
+                          <div>
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-2xl font-black text-foreground group-hover:text-primary transition-colors">
+                                  {p.code}
+                                </span>
+                                {item.country === "US" ? (
+                                  <UsFlagBadge className="w-4 h-2.5 rounded-xs" />
+                                ) : item.country === "CA" ? (
+                                  <CaFlagBadge className="w-4 h-2.5 rounded-xs" />
+                                ) : item.country === "TF" ? (
+                                  <Phone className="size-3 text-emerald-500" />
+                                ) : (
+                                  <Globe2 className="size-3 text-amber-500" />
+                                )}
+                              </div>
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-semibold">
+                                {item.tzLabel}
+                              </span>
+                            </div>
+
+                            <div className="mt-2 space-y-0.5">
+                              <h3 className="font-bold text-sm text-foreground truncate" title={isAr ? p.nameAr : p.nameEn}>
+                                {isAr ? p.nameAr : p.nameEn}
+                              </h3>
+                              <p className="text-[11px] text-muted-foreground truncate" title={item.cities.join(", ")}>
+                                {item.cities.slice(0, 2).join(", ")}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="pt-2.5 border-t border-border/60 space-y-2.5">
+                            {/* Live Time & TCPA Status */}
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="font-mono font-bold text-foreground">
+                                {clock.time}
+                              </span>
+                              <span
+                                className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${item.risk
+                                    ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30"
+                                    : win.status === "good"
+                                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                                      : win.status === "caution"
+                                        ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30"
+                                        : "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30"
+                                  }`}
+                              >
+                                <span
+                                  className={`size-1.5 rounded-full ${item.risk
+                                      ? "bg-rose-500 animate-ping"
+                                      : win.status === "good"
+                                        ? "bg-emerald-500"
+                                        : win.status === "caution"
+                                          ? "bg-amber-500"
+                                          : "bg-rose-500"
+                                    }`}
+                                />
+                                <span>
+                                  {item.risk
+                                    ? (isAr ? "احتيال" : "Fraud Risk")
+                                    : win.status === "good"
+                                      ? (isAr ? "مسموح" : "Safe")
+                                      : win.status === "caution"
+                                        ? (isAr ? "يقارب الإغلاق" : "Closing")
+                                        : (isAr ? "ممنوع" : "Closed")}
+                                </span>
+                              </span>
+                            </div>
+
+                            <button
+                              onClick={() => handleSearch(p.code)}
+                              className="w-full py-1.5 px-2.5 rounded-xl bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                            >
+                              <span>{isAr ? "تحليل الكود" : "Inspect Dossier"}</span>
+                              <span className="text-[11px]">→</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* SECTION 3: ENTERPRISE EDITORIAL ASYMMETRIC SPLIT */}
+                <EnterpriseEditorialSplit
+                  onInspectCode={handleSearch}
+                  onNavigateToConverter={() => {
+                    setActiveTab("converter");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  onNavigateToBulk={() => {
+                    setActiveTab("bulk");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  isAr={isAr}
+                />
+
+                {/* SECTION 4: INVERTED DARK EDITORIAL SECTION ("NUMBERS TELL THE STORY") */}
+                <InvertedNumbersSection
+                  onSelectCode={handleSearch}
+                  isAr={isAr}
+                />
+
+                {/* SECTION 4: VISUAL OPERATIONS RADAR BANNER - ASYMMETRIC SPLIT WITH OPERATIONS ROOM */}
+                <div className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-indigo-500/10 p-6 sm:p-8 md:p-10 shadow-md">
+                  <div className="pointer-events-none absolute -right-20 -bottom-20 w-80 h-80 bg-primary/10 blur-3xl rounded-full" />
+
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                    <div className="lg:col-span-7 space-y-4">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
+                        <Navigation className="size-3.5" />
+                        <span>{isAr ? "غرفة عمليات الاتصالات التفاعلية" : "Visual Operations Radar Room"}</span>
+                      </div>
+
+                      <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-tight">
+                        {isAr ? "خريطة جغرافية حية لمناطق التوقيت والمفاتيح الهاتفية" : "Interactive North American Telecom & Timezone Map"}
+                      </h2>
+
+                      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                        {isAr
+                          ? "استكشف خرائط التغطية وتوزيع النطاقات الزمنية (الشرقي، المركزي، الجبلي، الهادئ، ألاسكا، وهاواي) مع تحديد مراكز الخدمة على خريطة Leaflet تفاعلية حية."
+                          : "Visualize area code density across Eastern, Central, Mountain, Pacific, Alaska and Hawaii zones with live geocoded coordinate rate centers on our operations radar."}
+                      </p>
+
+                      <div className="pt-2 flex items-center gap-3 flex-wrap">
+                        <button
+                          onClick={() => {
+                            setActiveTab("map");
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
+                          className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-xs sm:text-sm shadow-md shadow-primary/20 hover:brightness-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+                        >
+                          <Globe2 className="size-4" />
+                          <span>{isAr ? "تشغيل الخريطة التفاعلية" : "Launch Telecom Map"}</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setActiveTab("browse");
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
+                          className="px-5 py-2.5 rounded-xl bg-card hover:bg-muted text-foreground font-semibold text-xs sm:text-sm border border-border shadow-xs active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+                        >
+                          <Layers className="size-4" />
+                          <span>{isAr ? "استعراض 460+ مفتاح" : "Browse All 460+ NPAs"}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Rich Visual Operations Image Preview */}
+                    <div className="lg:col-span-5">
+                      <div
+                        onClick={() => {
+                          setActiveTab("map");
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        className="relative rounded-2xl overflow-hidden border border-primary/40 shadow-xl group cursor-pointer"
+                      >
+                        <img
+                          src="/images/operations-room.jpg"
+                          alt="Telecom Operations Center Radar"
+                          className="w-full h-56 sm:h-64 object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent" />
+
+                        <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-card/90 backdrop-blur-md border border-primary/30 text-[10px] font-mono text-primary font-bold">
+                          <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span>LIVE TELEMETRY</span>
+                        </div>
+
+                        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                          <span className="text-xs font-semibold text-foreground bg-card/85 px-3 py-1.5 rounded-xl border border-border/70 backdrop-blur-md flex items-center gap-1.5">
+                            <Globe2 className="size-3.5 text-primary" />
+                            <span>Click to open full map</span>
+                          </span>
+                          <span className="text-[11px] font-mono text-primary font-bold">→</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* TRUST & REGULATORY AUTHORITIES BAR */}
+                <TrustBar isAr={isAr} />
+
+                {/* SECTION: OPERATIONAL CASE STUDIES & ARCHITECTURAL TRUST */}
+                <EnterpriseTestimonials
+                  onNavigateToBulk={() => {
+                    setActiveTab("bulk");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  isAr={isAr}
+                />
+
+                {/* SECTION 5: OUTBOUND COMPLIANCE PROTOCOL (3 STEPS) */}
+                <div>
+                  <div className="text-center max-w-xl mx-auto mb-6">
+                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground">
+                      {isAr ? "كيف تعمل المنظومة" : "Operational Protocol"}
+                    </span>
+                    <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground tracking-tight mt-1">
+                      {isAr ? "3 خطوات للاتصال الآمن المتوافق قانونياً" : "Three Steps to Confident, Compliant Outreach"}
+                    </h2>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="rounded-2xl bg-card/60 border border-border/70 p-5 space-y-2.5 shadow-2xs">
+                      <div className="size-8 rounded-xl bg-primary/10 text-primary font-mono font-black text-sm flex items-center justify-center">
+                        01
+                      </div>
+                      <h3 className="font-bold text-sm text-foreground">
+                        {isAr ? "إدخال المفتاح أو الرقم أو القائمة" : "Input NPA, Number or Batch"}
+                      </h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {isAr
+                          ? "أدخل كود المنطقة المكون من 3 أرقام أو رقماً هاتفياً كاملاً، أو الصق ملف بيانات العملاء في مستخرج الأرقام."
+                          : "Type any 3-digit area code, full telephone number, or drop your CRM lead list into the bulk extraction workspace."}
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl bg-card/60 border border-border/70 p-5 space-y-2.5 shadow-2xs">
+                      <div className="size-8 rounded-xl bg-primary/10 text-primary font-mono font-black text-sm flex items-center justify-center">
+                        02
+                      </div>
+                      <h3 className="font-bold text-sm text-foreground">
+                        {isAr ? "فحص التوقيت والامتثال لـ TCPA" : "Verify TCPA & Fraud Score"}
+                      </h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {isAr
+                          ? "يقوم المحرك فورياً باحتساب التوقيت المحلي الفعلي للمستلم وتأكيد ما إذا كان يقع ضمن نافذة الاتصال القانونية المسموحة."
+                          : "Our engine synchronizes with local rate-center clocks to evaluate TCPA legality (8 AM – 9 PM) and screens against Wangiri fraud."}
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl bg-card/60 border border-border/70 p-5 space-y-2.5 shadow-2xs">
+                      <div className="size-8 rounded-xl bg-primary/10 text-primary font-mono font-black text-sm flex items-center justify-center">
+                        03
+                      </div>
+                      <h3 className="font-bold text-sm text-foreground">
+                        {isAr ? "الاتصال أو تصدير البيانات النظيفة" : "Execute Outreach or Export"}
+                      </h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {isAr
+                          ? "باشر الاتصال بثقة مطلقة ودون خوف من الغرامات، أو قم بتصدير ملفات الأرقام المنسقة إلى Excel أو CSV."
+                          : "Connect with recipients knowing you're fully compliant, or download clean, standardized lead dossiers to CSV or Excel."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SECTION 6: QUICK ACCESS (FAVORITES & RECENTS) */}
+                {(favorites.length > 0 || recents.length > 0) && (
+                  <div className="rounded-2xl bg-card/40 border border-border/60 p-4 flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-muted-foreground flex items-center gap-1">
+                        <History className="size-3.5" />
+                        <span>{isAr ? "عمليات بحث ومفضلات سريعة:" : "Quick Access:"}</span>
+                      </span>
+                      {favorites.map((code) => (
+                        <button
+                          key={`fav-${code}`}
+                          onClick={() => handleSearch(code)}
+                          className="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-300 font-mono font-bold flex items-center gap-1 cursor-pointer hover:bg-amber-500/20"
+                        >
+                          <Star className="size-3 fill-amber-500" />
+                          <span>{code}</span>
+                        </button>
+                      ))}
+                      {recents.slice(0, 5).map((query) => (
+                        <button
+                          key={`rec-${query}`}
+                          onClick={() => handleSearch(query)}
+                          className="px-2.5 py-1 rounded-lg bg-muted border border-border text-foreground font-mono cursor-pointer hover:bg-muted/80"
+                        >
+                          {query}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => {
+                        setActiveTab("saved");
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className="text-primary hover:underline font-semibold cursor-pointer"
+                    >
+                      {isAr ? "عرض كل المحفوظات ←" : "View All Saved →"}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -1489,11 +1908,10 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                       setCountryFilter(c);
                       setCurrentPage(1);
                     }}
-                    className={`px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
-                      countryFilter === c
+                    className={`px-2.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${countryFilter === c
                         ? "bg-primary text-primary-foreground font-semibold"
                         : "text-muted-foreground hover:text-foreground"
-                    }`}
+                      }`}
                   >
                     {c === "ALL" ? t("all") : c === "US" ? "🇺🇸 US" : c === "CA" ? "🇨🇦 CA" : c === "TF" ? "📞 Toll-Free" : "⚠️ Fraud"}
                   </button>
@@ -1650,22 +2068,20 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                           </td>
                           <td className="py-3 px-4 whitespace-nowrap">
                             <span
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                                win.status === "good"
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${win.status === "good"
                                   ? "bg-emerald-500/15 text-emerald-400"
                                   : win.status === "caution"
                                     ? "bg-amber-500/15 text-amber-400"
                                     : "bg-rose-500/15 text-rose-400"
-                              }`}
+                                }`}
                             >
                               <span
-                                className={`size-1.5 rounded-full ${
-                                  win.status === "good"
+                                className={`size-1.5 rounded-full ${win.status === "good"
                                     ? "bg-emerald-400"
                                     : win.status === "caution"
                                       ? "bg-amber-400"
                                       : "bg-rose-500"
-                                }`}
+                                  }`}
                               />
                               {win.label}
                             </span>
@@ -1705,11 +2121,10 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                         <button
                           key={pageNum}
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`size-7 rounded-lg text-xs font-medium cursor-pointer ${
-                            currentPage === pageNum
+                          className={`size-7 rounded-lg text-xs font-medium cursor-pointer ${currentPage === pageNum
                               ? "bg-primary text-primary-foreground font-bold"
                               : "text-muted-foreground hover:bg-card"
-                          }`}
+                            }`}
                         >
                           {pageNum}
                         </button>
@@ -1838,33 +2253,29 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                   <div className="flex items-center gap-1 bg-card/60 p-1 rounded-xl border border-border/70 text-xs">
                     <button
                       onClick={() => setBulkFilter("all")}
-                      className={`px-3 py-1.5 rounded-lg font-medium cursor-pointer ${
-                        bulkFilter === "all" ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground"
-                      }`}
+                      className={`px-3 py-1.5 rounded-lg font-medium cursor-pointer ${bulkFilter === "all" ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground"
+                        }`}
                     >
                       All ({bulkResults.length})
                     </button>
                     <button
                       onClick={() => setBulkFilter("safe")}
-                      className={`px-3 py-1.5 rounded-lg font-medium cursor-pointer ${
-                        bulkFilter === "safe" ? "bg-emerald-500 text-white font-semibold" : "text-muted-foreground"
-                      }`}
+                      className={`px-3 py-1.5 rounded-lg font-medium cursor-pointer ${bulkFilter === "safe" ? "bg-emerald-500 text-white font-semibold" : "text-muted-foreground"
+                        }`}
                     >
                       Safe to Call ({bulkResults.filter((r) => r.callStatus === "good").length})
                     </button>
                     <button
                       onClick={() => setBulkFilter("caution")}
-                      className={`px-3 py-1.5 rounded-lg font-medium cursor-pointer ${
-                        bulkFilter === "caution" ? "bg-amber-500 text-white font-semibold" : "text-muted-foreground"
-                      }`}
+                      className={`px-3 py-1.5 rounded-lg font-medium cursor-pointer ${bulkFilter === "caution" ? "bg-amber-500 text-white font-semibold" : "text-muted-foreground"
+                        }`}
                     >
                       Caution / Outside ({bulkResults.filter((r) => r.callStatus !== "good").length})
                     </button>
                     <button
                       onClick={() => setBulkFilter("risk")}
-                      className={`px-3 py-1.5 rounded-lg font-medium cursor-pointer ${
-                        bulkFilter === "risk" ? "bg-rose-500 text-white font-semibold" : "text-muted-foreground"
-                      }`}
+                      className={`px-3 py-1.5 rounded-lg font-medium cursor-pointer ${bulkFilter === "risk" ? "bg-rose-500 text-white font-semibold" : "text-muted-foreground"
+                        }`}
                     >
                       Scam Traps ({bulkResults.filter((r) => r.risk).length})
                     </button>
@@ -1924,13 +2335,12 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                             </td>
                             <td className="py-2.5 px-4">
                               <span
-                                className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                                  item.callStatus === "good"
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${item.callStatus === "good"
                                     ? "bg-emerald-500/15 text-emerald-400"
                                     : item.callStatus === "caution"
                                       ? "bg-amber-500/15 text-amber-400"
                                       : "bg-rose-500/15 text-rose-400"
-                                }`}
+                                  }`}
                               >
                                 {item.callLabel}
                               </span>
@@ -1979,50 +2389,19 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                 </p>
               </div>
 
-              {/* Map Selection Controls */}
-              <div className="flex items-center gap-1 bg-card/60 p-1 rounded-xl border border-border/70 text-xs">
-                <button
-                  onClick={() => setActiveMap("us")}
-                  className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
-                    activeMap === "us" ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  🇺🇸 United States Map
-                </button>
-                <button
-                  onClick={() => setActiveMap("ca")}
-                  className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
-                    activeMap === "ca" ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  🇨🇦 Canada Map
-                </button>
-                <button
-                  onClick={() => setIsMapExpanded(!isMapExpanded)}
-                  className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-card cursor-pointer"
-                  title="Toggle Map Size"
-                >
-                  <Maximize2 className="size-4" />
-                </button>
-              </div>
             </div>
 
-            {/* Visual Coverage Map Viewer */}
-            <div className="glass-panel p-3 sm:p-4 rounded-2xl border border-border/70 overflow-hidden">
-              <div className="relative rounded-xl overflow-hidden bg-black/40 flex items-center justify-center">
-                <img
-                  src={activeMap === "us" ? "/maps/us_map_premium.png" : "/maps/ca_map_premium.png"}
-                  alt={activeMap === "us" ? "United States Area Code Map" : "Canada Area Code Map"}
-                  className={`w-full object-contain transition-all duration-300 ${
-                    isMapExpanded ? "max-h-[800px]" : "max-h-[460px]"
-                  }`}
-                />
-                <div className="absolute top-3 left-3 px-3 py-1 rounded-lg bg-background/80 backdrop-blur border border-border/80 text-[11px] font-semibold text-foreground flex items-center gap-1.5 shadow-sm">
-                  <Compass className="size-3.5 text-primary" />
-                  <span>{activeMap === "us" ? "US Geographic NPA Allocations" : "Canadian Provincial NPA Allocations"}</span>
-                </div>
-              </div>
-            </div>
+            {/* Real Interactive Telecom Coverage Map Engine */}
+            <InteractiveTelecomMap
+              initialRegion={activeMap === "ca" ? "ca" : "us"}
+              onSelectCode={(code) => {
+                setSearchQuery(code);
+                setHasSearched(true);
+                setSelectedHeroMatchIdx(0);
+                setActiveTab("lookup");
+                heroResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            />
 
             {/* Timezone Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -2048,13 +2427,12 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                         </div>
 
                         <span
-                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                            win.status === "good"
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${win.status === "good"
                               ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                               : win.status === "caution"
                                 ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
                                 : "bg-rose-500/20 text-rose-400 border border-rose-500/30"
-                          }`}
+                            }`}
                         >
                           {win.label}
                         </span>
@@ -2210,9 +2588,8 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                   <span className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider block">
                     Mutual TCPA Calling Curfew Status
                   </span>
-                  <div className={`font-display text-lg sm:text-xl font-bold mt-1 ${
-                    compareMetrics.bothSafe ? "text-emerald-400" : "text-amber-400"
-                  }`}>
+                  <div className={`font-display text-lg sm:text-xl font-bold mt-1 ${compareMetrics.bothSafe ? "text-emerald-400" : "text-amber-400"
+                    }`}>
                     {compareMetrics.bothSafe ? "Mutual Calling Permitted Now" : "Curfew In Effect For One Region"}
                   </div>
                   <span className="text-xs text-muted-foreground block mt-1">
@@ -2255,9 +2632,8 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                             </div>
                             <div className="mt-1 flex items-center gap-2">
                               <span
-                                className={`size-2 rounded-full ${
-                                  win.status === "good" ? "bg-emerald-400" : win.status === "caution" ? "bg-amber-400" : "bg-rose-500"
-                                }`}
+                                className={`size-2 rounded-full ${win.status === "good" ? "bg-emerald-400" : win.status === "caution" ? "bg-amber-400" : "bg-rose-500"
+                                  }`}
                               />
                               <span className="font-semibold text-foreground">{win.label}</span>
                             </div>
