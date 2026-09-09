@@ -77,7 +77,7 @@ export const EnterpriseTestimonials: React.FC<EnterpriseTestimonialsProps> = ({
             {isAr ? "كيف تعتمد المؤسسات الكبرى على ذكاء إنتك" : "How Enterprise Teams Rely on ENTEC"}
           </h2>
         </div>
-        <p className="text-xs text-muted-foreground max-w-sm">
+        <p className="text-xs text-slate-600 dark:text-slate-400 max-w-sm leading-relaxed font-normal">
           {isAr
             ? "حلول مثبتة ميدانياً في حماية الميزانيات، منع الاحتيال، وضمان الالتزام القانوني الصارم."
             : "Field-tested operational workflows for contact centers, sales platforms, and telecom carriers."}
@@ -91,34 +91,37 @@ export const EnterpriseTestimonials: React.FC<EnterpriseTestimonialsProps> = ({
           return (
             <div
               key={idx}
-              className="relative rounded-3xl bg-card/80 border border-border/80 hover:border-primary/40 p-6 sm:p-7 space-y-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+              className="relative overflow-hidden rounded-3xl bg-white dark:bg-card/90 border border-slate-200/90 dark:border-white/10 border-t-2 border-t-primary/70 dark:border-t-primary hover:border-primary/50 p-6 sm:p-7 space-y-5 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between group"
             >
-              <div className="space-y-4">
+              {/* Subtle Ambient Watermark Quotation Icon in Background */}
+              <Quote className="absolute -top-1 -right-1 size-20 text-primary/[0.06] dark:text-primary/[0.10] pointer-events-none transform -rotate-12 group-hover:scale-110 transition-transform duration-500" />
+
+              <div className="space-y-4 relative z-10">
                 <div className="flex items-center justify-between">
-                  <div className="size-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                  <div className="size-10 rounded-2xl bg-primary/10 dark:bg-primary/15 text-primary flex items-center justify-center border border-primary/20">
                     <Icon className="size-5" />
                   </div>
-                  <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                     {isAr ? item.metricAr : item.metricEn}
                   </span>
                 </div>
 
-                <div className="space-y-1">
-                  <div className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">
+                <div className="space-y-2">
+                  <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
                     {isAr ? item.sectorAr : item.sectorEn}
                   </div>
-                  <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed italic">
+                  <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-100 leading-relaxed italic font-normal">
                     {isAr ? item.quoteAr : item.quoteEn}
                   </p>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-border/60 flex items-center justify-between text-xs">
+              <div className="pt-4 border-t border-slate-100 dark:border-white/10 flex items-center justify-between text-xs relative z-10">
                 <div>
-                  <div className="font-bold text-foreground text-xs">{isAr ? item.roleAr : item.roleEn}</div>
-                  <div className="text-[11px] text-muted-foreground font-mono">{item.companyEn}</div>
+                  <div className="font-bold text-slate-900 dark:text-white text-xs">{isAr ? item.roleAr : item.roleEn}</div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">{item.companyEn}</div>
                 </div>
-                <Quote className="size-5 text-primary/20 shrink-0" />
+                <Quote className="size-4 text-primary/40 shrink-0" />
               </div>
             </div>
           );
@@ -126,16 +129,16 @@ export const EnterpriseTestimonials: React.FC<EnterpriseTestimonialsProps> = ({
       </div>
 
       {/* Bottom Conversion CTA Strip */}
-      <div className="rounded-2xl bg-gradient-to-r from-primary/10 via-card to-indigo-500/10 border border-primary/20 p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+      <div className="rounded-2xl bg-gradient-to-r from-blue-50/70 via-white to-slate-50/70 dark:from-primary/10 dark:via-card dark:to-indigo-500/10 border border-slate-200/90 dark:border-primary/25 p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
         <div className="flex items-center gap-3">
-          <div className="size-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0">
+          <div className="size-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0 border border-primary/25">
             <CheckCircle2 className="size-5" />
           </div>
           <div>
-            <div className="font-bold text-sm text-foreground">
+            <div className="font-bold text-sm text-slate-900 dark:text-white">
               {isAr ? "هل لديك قائمة عملاء أو ملف CSV يحتاج إلى تنظيف وفحص؟" : "Have a phone list or CSV that needs TCPA & fraud cleansing?"}
             </div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
               {isAr ? "استخرج الأرقام الصالحة، حدد المناطق الزمنية، وافرز الأرقام المشبوهة مجاناً." : "Extract valid E.164 records, map rate centers, and isolate high-risk Caribbean codes instantly."}
             </div>
           </div>
@@ -143,9 +146,9 @@ export const EnterpriseTestimonials: React.FC<EnterpriseTestimonialsProps> = ({
 
         <button
           onClick={onNavigateToBulk}
-          className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-xs sm:text-sm shadow-md shadow-primary/20 hover:brightness-105 active:scale-95 transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+          className="btn-primary shrink-0"
         >
-          <span>{isAr ? "تشغيل مستخرج الأرقام" : "Try Bulk Cleanser Free"}</span>
+          <span>{isAr ? "تنظيف الأرقام مجاناً" : "Try Bulk Cleanser Free"}</span>
           <ArrowRight className="size-4" />
         </button>
       </div>

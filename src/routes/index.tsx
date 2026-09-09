@@ -34,7 +34,6 @@ import {
   Search,
   Shield,
   ShieldAlert,
-  ShieldCheck,
   Navigation,
   Sparkles,
   Star,
@@ -78,11 +77,14 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchAreaCodesFromDb, adaptDbRecordToAreaCode, logSearchQuery, logEngagementEvent } from "@/lib/collections";
 import { getClientGeoInfo, checkSearchVelocity } from "@/lib/geo";
 import { isFirebaseConfigured, trackAnalyticsEvent } from "@/lib/firebase";
-import { LiveTicker } from "@/components/hero/LiveTicker";
+
 import { TrustBar } from "@/components/landing/TrustBar";
 import { EnterpriseEditorialSplit } from "@/components/landing/EnterpriseEditorialSplit";
 import { InvertedNumbersSection } from "@/components/landing/InvertedNumbersSection";
 import { EnterpriseTestimonials } from "@/components/landing/EnterpriseTestimonials";
+import { GoogleAdBanner } from "@/components/ads/GoogleAdBanner";
+import { AreaCodeNarrativeSection } from "@/components/landing/AreaCodeNarrativeSection";
+import { getAreaNarrative, generateAndSaveNarrative } from "@/lib/ai-narrative-service";
 
 export const Route = createFileRoute("/")({
   component: IndexPage,
@@ -682,6 +684,7 @@ function IndexPage() {
   // Favorites & Recents in localStorage
   const [favorites, setFavorites] = useState<string[]>([]);
   const [recents, setRecents] = useState<string[]>([]);
+  const [showAllClocks, setShowAllClocks] = useState(false);
 
   // Ticking 1-second clock
   useEffect(() => {
@@ -783,6 +786,36 @@ function IndexPage() {
     return lookupResult.matches[clamped] || lookupResult.matches[0];
   }, [lookupResult.matches, selectedHeroMatchIdx]);
 
+  // Fetch or on-demand synthesize AI Narrative for the active area code
+  const { data: activeNarrative, isLoading: isNarrativeLoading } = useQuery({
+    queryKey: ["areaNarrative", activeHeroMatch?.code],
+    queryFn: async () => {
+      if (!activeHeroMatch) return null;
+      // 1. Check existing narrative from Firestore / cache
+      const existing = await getAreaNarrative(activeHeroMatch.code);
+      if (existing) return existing;
+
+      // 2. If not found, generate on-demand and persist to Firestore
+      const primaryCity =
+        (activeHeroMatch.cities && activeHeroMatch.cities.length > 0 && activeHeroMatch.cities[0]) ||
+        activeHeroMatch.regionName ||
+        activeHeroMatch.region;
+
+      const generated = await generateAndSaveNarrative({
+        code: activeHeroMatch.code,
+        city: primaryCity,
+        region: activeHeroMatch.regionName || activeHeroMatch.region,
+        state: activeHeroMatch.regionName || activeHeroMatch.region,
+        country: activeHeroMatch.country || "US",
+        timezone: activeHeroMatch.tzLabel || activeHeroMatch.timezone || "Eastern Time (ET)",
+        carrier: activeHeroMatch.carrier || "",
+      });
+      return generated;
+    },
+    enabled: Boolean(activeHeroMatch?.code),
+    staleTime: 1000 * 60 * 60, // 1 hour memory caching
+  });
+
   // Scroll to search results cleanly below sticky header after layout settles
   useEffect(() => {
     if (!hasSearched || !searchQuery.trim()) return;
@@ -872,7 +905,7 @@ function IndexPage() {
     const clock = localTime(item.timezone, now);
     const win = callingWindow(clock.hour);
     const carrier = item.carrier || carrierFor(item.code, item.country);
-    const info = `ENTEC NPA Dossier:
+    const info = `ENTEC Official NPA Telecommunications Record:
 Area Code: ${item.code}
 State/Region: ${item.regionName} (${item.region})
 Country: ${item.country}
@@ -884,7 +917,7 @@ Overlays: ${item.overlays.join(", ") || "None"}
 Dialing Rule: ${item.mandatory10Digit ? "10-Digit Mandatory" : "7/10-Digit"}
 Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
     navigator.clipboard.writeText(info);
-    triggerToast(isAr ? `تم نسخ معلومات ${item.code}` : `Copied NPA ${item.code} dossier!`);
+    triggerToast(isAr ? `تم نسخ معلومات ${item.code}` : `Copied NPA ${item.code} details!`);
     logEngagementEvent({
       action: "copy_dossier",
       target: item.code,
@@ -1056,41 +1089,45 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
 
       {/* Hero Header - Deep Enterprise Dark Overhaul */}
       <section 
-        className={`relative overflow-hidden bg-slate-950 text-slate-100 border-b border-slate-800/80 transition-colors duration-150 ${
-          hasSearched && searchQuery.trim() ? "py-2.5 sm:py-3.5" : "pt-10 pb-12 md:pt-16 md:pb-14 min-h-[78vh] flex flex-col justify-between"
+        className={`relative overflow-hidden bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-800/80 transition-colors duration-150 ${
+          hasSearched && searchQuery.trim() ? "py-2.5 sm:py-3.5" : "pt-8 pb-10 sm:pt-10 sm:pb-12"
         }`}
       >
         {/* Subtle mesh background gradients */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(30,58,138,0.30),rgba(15,23,42,0.85)_70%,rgba(2,6,23,1)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(30,58,138,0.05),rgba(226,232,240,0.1)_70%,rgba(226,232,240,0.4)_100%)] dark:bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(30,58,138,0.30),rgba(15,23,42,0.85)_70%,rgba(2,6,23,1)_100%)] transition-colors" />
 
         {/* Ambient electric glowing auras */}
-        <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[950px] h-[480px] bg-blue-600/15 blur-[140px] rounded-full" />
-        <div className="pointer-events-none absolute top-1/4 -right-16 w-[450px] h-[350px] bg-cyan-500/10 blur-[130px] rounded-full" />
-        <div className="pointer-events-none absolute bottom-12 -left-20 w-[450px] h-[350px] bg-indigo-600/15 blur-[130px] rounded-full" />
+        <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[950px] h-[480px] bg-blue-600/5 dark:bg-blue-600/15 blur-[140px] rounded-full" />
+        <div className="pointer-events-none absolute top-1/4 -right-16 w-[450px] h-[350px] bg-cyan-500/5 dark:bg-cyan-500/10 blur-[130px] rounded-full" />
+        <div className="pointer-events-none absolute bottom-12 -left-20 w-[450px] h-[350px] bg-indigo-600/5 dark:bg-indigo-600/15 blur-[130px] rounded-full" />
 
         {/* Generated AI Holographic North America Telecom Map Background */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden flex items-center justify-center z-0 [mask-image:radial-gradient(ellipse_85%_75%_at_50%_48%,black_50%,transparent_100%)]">
+          {/* Dark Mode Image */}
           <img 
             src="/images/hero-na-map.jpg" 
-            alt="North America Telecommunications Network" 
-            className="w-full h-full object-cover object-center opacity-55 mix-blend-screen scale-105 select-none pointer-events-none transition-all duration-700" 
+            alt="North America Telecommunications Network Dark" 
+            className="w-full h-full object-cover object-center opacity-55 mix-blend-screen scale-105 select-none pointer-events-none transition-all duration-700 hidden dark:block" 
+          />
+          {/* Light Mode Image */}
+          <img 
+            src="/images/hero-light.jpg" 
+            alt="North America Telecommunications Network Light" 
+            className="w-full h-full object-cover object-center opacity-80 mix-blend-darken scale-105 select-none pointer-events-none transition-all duration-700 block dark:hidden" 
           />
         </div>
 
         {/* High-contrast radial vignette behind central text so typography is 100% crisp */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_50%_46%,rgba(2,6,23,0.92)_0%,rgba(2,6,23,0.65)_50%,transparent_100%)] z-10" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_50%_46%,rgba(241,245,249,0.6)_0%,rgba(241,245,249,0.1)_50%,transparent_100%)] dark:bg-[radial-gradient(ellipse_65%_55%_at_50%_46%,rgba(2,6,23,0.92)_0%,rgba(2,6,23,0.65)_50%,transparent_100%)] z-10 transition-colors" />
 
-        <div className="relative mx-auto max-w-5xl px-4 sm:px-6 text-center z-20 my-auto">
+        <div className="relative mx-auto max-w-5xl px-4 sm:px-6 text-center z-20">
           {(!hasSearched || !searchQuery.trim()) && (
-            <div className="flex flex-col items-center mb-6">
-              <div className="size-20 sm:size-22 rounded-3xl p-1 bg-gradient-to-br from-blue-500/30 via-indigo-500/20 to-cyan-500/10 border border-blue-400/30 shadow-[0_0_30px_rgba(59,130,246,0.25)] overflow-hidden mb-4 animate-in fade-in zoom-in duration-500">
-                <img src="/entec-logo.jpg" alt="ENTEC Logo" className="w-full h-full object-cover rounded-[20px]" />
-              </div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-950/70 backdrop-blur-md px-4 py-1.5 text-xs font-semibold text-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.15)]">
-                <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="flex flex-col items-center mb-4 sm:mb-5">
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-200/90 dark:border-blue-500/20 bg-white/90 dark:bg-blue-950/40 backdrop-blur-md px-4 py-1.5 text-xs font-semibold text-blue-800 dark:text-blue-200 shadow-xs shadow-blue-500/5 dark:shadow-[0_0_20px_rgba(59,130,246,0.1)]">
+                <span className="size-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
                 <span>{isAr ? "المرجع الرسمي لذكاء شبكات الاتصال • 460+ مفتاح موثق" : "Authoritative Telecom Intelligence • 460+ Real NPAs"}</span>
-                <span className="text-blue-400/30 hidden sm:inline">|</span>
-                <span className="text-[11px] font-mono text-blue-300/70 hidden sm:inline">NANPA & FCC Synced</span>
+                <span className="text-blue-400/50 dark:text-blue-400/30 hidden sm:inline">|</span>
+                <span className="text-[11px] font-mono text-blue-800/70 dark:text-blue-300/50 hidden sm:inline">NANPA & FCC Synced</span>
               </div>
             </div>
           )}
@@ -1098,16 +1135,16 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
           {/* Cinematic Split Headline (Landing View Only) */}
           {(!hasSearched || !searchQuery.trim()) && (
             <>
-              <h1 className="font-display tracking-tight max-w-4xl mx-auto leading-[1.12] text-3xl sm:text-5xl lg:text-6xl mb-4">
-                <span className="block text-xl sm:text-2xl lg:text-3xl font-medium text-slate-300 mb-2 tracking-normal">
+              <h1 className="font-display tracking-tight max-w-4xl mx-auto leading-[1.12] text-3xl sm:text-5xl lg:text-6xl mb-3">
+                <span className="block text-xl sm:text-2xl lg:text-3xl font-medium text-slate-600 dark:text-slate-300 mb-1.5 tracking-normal">
                   {isAr ? "كل مفتاح اتصال في أمريكا الشمالية،" : "Every North American area code,"}
                 </span>
-                <span className="block font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300">
+                <span className="block font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-800 to-slate-500 dark:from-white dark:via-slate-100 dark:to-slate-400/80">
                   {isAr ? "مُحلل وموثق لحظياً." : "Decoded in Real Time."}
                 </span>
               </h1>
 
-              <p className="mt-3 sm:mt-4 max-w-2xl mx-auto text-sm sm:text-base text-slate-300/80 leading-relaxed font-normal">
+              <p className="mt-2.5 max-w-2xl mx-auto text-sm sm:text-base text-slate-600 dark:text-slate-300/80 leading-relaxed font-normal">
                 {isAr
                   ? "استعلم فورياً عن 460+ كود أمريكي وكندي، احسب نوافذ اتصال TCPA الآمنة قانونياً، واكشف أرقام الاحتيال الدولي في أجزاء من الثانية."
                   : "Instant dossier lookup for 460+ US, Canadian & Caribbean area codes. Calculate statutory TCPA calling hours, detect offshore toll fraud, and cleanse number lists."}
@@ -1117,11 +1154,11 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
 
           {/* Unified Search Box - Apple/Linear Dark Spotlight Glass */}
           <div className={`mx-auto max-w-3xl transition-all ${
-            hasSearched && searchQuery.trim() ? "mt-0" : "mt-8 sm:mt-10"
+            hasSearched && searchQuery.trim() ? "mt-0" : "mt-6 sm:mt-8"
           }`}>
-            <div className="p-1.5 sm:p-2 flex flex-row items-center gap-1.5 sm:gap-2 rounded-2xl bg-slate-900/90 backdrop-blur-xl border border-slate-700/80 hover:border-blue-500/60 shadow-[0_12px_40px_rgba(0,0,0,0.6)] hover:shadow-[0_16px_50px_rgba(2,132,199,0.2)] transition-all">
+            <div className="p-2 sm:p-2.5 flex flex-row items-center gap-2 sm:gap-2.5 rounded-2xl bg-white dark:bg-slate-900/90 backdrop-blur-xl border border-slate-300 dark:border-slate-700 hover:border-primary/60 shadow-[0_12px_36px_rgba(15,23,42,0.10)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] transition-all">
               <div className="relative flex-1 min-w-0 flex items-center">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 sm:size-5 text-slate-400 pointer-events-none" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-5 text-slate-500 dark:text-slate-400 pointer-events-none" />
                 <input
                   type="text"
                   value={searchQuery}
@@ -1130,7 +1167,7 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                     if (e.key === "Enter") handleSearch(searchQuery);
                   }}
                   placeholder={t("search_ph")}
-                  className="w-full bg-transparent pl-10 sm:pl-11 pr-8 sm:pr-10 py-2.5 sm:py-3 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 focus:outline-none"
+                  className="w-full bg-transparent pl-11 pr-9 py-3 sm:py-3.5 text-base font-medium text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none"
                 />
                 {searchQuery && (
                   <button
@@ -1138,27 +1175,27 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                       setSearchQuery("");
                       setHasSearched(false);
                     }}
-                    className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white rounded-full hover:bg-slate-800/80 cursor-pointer transition-colors"
+                    className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-full hover:bg-slate-100 dark:hover:bg-slate-800/80 cursor-pointer transition-colors"
                   >
-                    <X className="size-3.5 sm:size-4" />
+                    <X className="size-4" />
                   </button>
                 )}
               </div>
 
               <button
                 onClick={() => handleSearch(searchQuery)}
-                className="inline-flex items-center justify-center gap-1.5 px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-blue-500/25 transition-all hover:brightness-110 active:scale-95 shrink-0 cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-md shadow-primary/25 transition-all active:scale-95 shrink-0 cursor-pointer"
               >
-                <Sparkles className="size-3.5 sm:size-4" />
+                <Sparkles className="size-4" />
                 <span>{t("search_btn")}</span>
               </button>
             </div>
 
             {/* Quick Example Searches */}
             {(!hasSearched || !searchQuery.trim()) && (
-              <div className="mt-4 flex items-center justify-center gap-1.5 flex-wrap text-xs text-slate-300">
-                <span className="font-semibold text-slate-300 flex items-center gap-1">
-                  <Sparkles className="size-3 text-cyan-400" />
+              <div className="mt-3.5 flex items-center justify-center gap-1.5 flex-wrap text-xs text-slate-600 dark:text-slate-300">
+                <span className="font-semibold flex items-center gap-1 text-slate-700 dark:text-slate-200">
+                  <Sparkles className="size-3 text-primary" />
                   <span>{isAr ? "شائع للبحث السريع:" : "Trending Searches:"}</span>
                 </span>
                 {[
@@ -1175,70 +1212,20 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                     key={chip.code}
                     type="button"
                     onClick={() => handleSearch(chip.code)}
-                    className={`px-2.5 py-1 rounded-full border text-[11px] font-mono font-medium transition-all cursor-pointer shadow-2xs active:scale-95 ${chip.isRisk
-                        ? "bg-amber-500/15 border-amber-500/40 text-amber-300 hover:bg-amber-500/25"
-                        : "bg-slate-800/80 hover:bg-blue-900/40 hover:text-blue-200 hover:border-blue-500/40 border-slate-700/80 text-slate-200"
-                      }`}
+                    className={`px-3 py-1 rounded-full border text-[11px] font-mono font-semibold transition-all cursor-pointer shadow-2xs active:scale-95 ${
+                      chip.isRisk
+                        ? "bg-rose-500/15 border-rose-400 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 hover:bg-rose-500/25"
+                        : "bg-slate-100 dark:bg-white/[0.06] border-slate-300 dark:border-white/15 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white"
+                    }`}
                   >
                     {chip.label}
                   </button>
                 ))}
               </div>
             )}
-
-            {/* Live Stats Strip (Landing View) */}
-            {(!hasSearched || !searchQuery.trim()) && (
-              <div className="mt-8 pt-6 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto text-left" dir="ltr">
-                <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-900/75 backdrop-blur-md border border-slate-800/80 hover:border-blue-500/40 transition-colors">
-                  <div className="size-8 rounded-lg bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0">
-                    <Radio className="size-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs sm:text-sm font-bold font-mono text-white leading-none">460+ NPAs</div>
-                    <div className="text-[10px] text-slate-400 mt-1">{isAr ? "سجل نانبا المعتمد" : "Official Registry"}</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-900/75 backdrop-blur-md border border-slate-800/80 hover:border-emerald-500/40 transition-colors">
-                  <div className="size-8 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
-                    <Clock className="size-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs sm:text-sm font-bold font-mono text-white leading-none">9 Timezones</div>
-                    <div className="text-[10px] text-slate-400 mt-1">{isAr ? "رادار التوقيت الحي" : "Live Clocks"}</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-900/75 backdrop-blur-md border border-slate-800/80 hover:border-indigo-500/40 transition-colors">
-                  <div className="size-8 rounded-lg bg-indigo-500/15 text-indigo-400 flex items-center justify-center shrink-0">
-                    <ShieldCheck className="size-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs sm:text-sm font-bold font-mono text-white leading-none">Zero Fines</div>
-                    <div className="text-[10px] text-slate-400 mt-1">{isAr ? "حماية الامتثال" : "TCPA Safe Harbor"}</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-900/75 backdrop-blur-md border border-slate-800/80 hover:border-amber-500/40 transition-colors">
-                  <div className="size-8 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0">
-                    <Zap className="size-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs sm:text-sm font-bold font-mono text-white leading-none">&lt; 1 ms</div>
-                    <div className="text-[10px] text-slate-400 mt-1">{isAr ? "سرعة الاستعلام" : "Instant Resolve"}</div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Live Search Ticker Tape on Hero Base */}
-        {(!hasSearched || !searchQuery.trim()) && (
-          <div className="mt-8 relative z-20">
-            <LiveTicker onSelectCode={handleSearch} isAr={isAr} dark={true} />
-          </div>
-        )}
       </section>
 
       {/* Toast Notification */}
@@ -1249,7 +1236,7 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
       )}
 
       {/* Main Body Content */}
-      <main ref={mainContentRef} className={`flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 ${hasSearched && searchQuery.trim() ? "py-4 sm:py-5" : "py-8"}`}>
+      <main ref={mainContentRef} className={`flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 ${hasSearched && searchQuery.trim() ? "py-4 sm:py-5" : "pt-6 pb-12 sm:pt-8 sm:pb-16"}`}>
         {/* =========================================================================
             TAB 1: INSTANT LOOKUP
         ========================================================================= */}
@@ -1333,7 +1320,7 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                   <div>
                     <h2 className="font-display text-xl font-bold text-foreground flex items-center gap-2">
                       <Sparkles className="size-4 text-primary" />
-                      <span>{isAr ? "نتيجة التحليل المباشر" : "Instant Intelligence Dossier"}</span>
+                      <span>{isAr ? "نتيجة البحث والتحقق المباشر" : "Instant Verification & Results"}</span>
                       <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary/15 text-primary">
                         {lookupResult.matches.length} {lookupResult.matches.length === 1 ? (isAr ? "نتيجة" : "match") : (isAr ? "نتائج" : "matches")}
                       </span>
@@ -1481,6 +1468,16 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                         onNavigateToRadar={() => setActiveTab("map")}
                       />
                     </div>
+
+                    {/* Regional Telecommunications Guide Section */}
+                    <AreaCodeNarrativeSection
+                      narrative={activeNarrative ?? null}
+                      isLoading={isNarrativeLoading}
+                      isAr={isAr}
+                    />
+
+                    {/* Google AdSense: Post-Search Result Banner */}
+                    <GoogleAdBanner format="horizontal" />
                   </div>
                 )}
               </div>
@@ -1489,7 +1486,6 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                  COMPREHENSIVE LANDING PAGE CONTENT (EDITORIAL HIERARCHY)
               ========================================================================= */
               <div className="space-y-12 sm:space-y-16 animate-in fade-in duration-500">
-
                 {/* SECTION 2: HIGH-VOLUME & TRENDING AREA CODES GRID */}
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-6">
@@ -1502,15 +1498,15 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                         {isAr ? "ساعات حية مباشرة للمناطق الكبرى" : "Explore Live Telecommunications Clocks"}
                       </h2>
                     </div>
-                    <p className="text-xs text-muted-foreground max-w-sm">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 max-w-sm leading-relaxed font-normal">
                       {isAr
                         ? "ساعات حية دقيقة ومطابقة قانونية لحظية لنوافذ الاتصال لكل ولاية ومقاطعة."
                         : "Live local clocks, dominant carriers, and TCPA legality computed in real time."}
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {POPULAR_NPAS.map((p) => {
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+                    {(showAllClocks ? POPULAR_NPAS : POPULAR_NPAS.slice(0, 4)).map((p) => {
                       const item = activeAreaCodeMap[p.code]?.[0];
                       if (!item) return null;
                       const clock = localTime(item.timezone, now);
@@ -1519,90 +1515,101 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                       return (
                         <div
                           key={p.code}
-                          className="group relative rounded-2xl bg-card/80 dark:bg-slate-900/80 border border-border/80 hover:border-primary/50 p-4.5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-3"
+                          className="group relative rounded-3xl bg-white dark:bg-card/90 border border-slate-200/90 dark:border-white/10 hover:border-primary/50 dark:hover:border-primary/50 p-6 shadow-sm dark:shadow-none hover:shadow-md transition-all flex flex-col justify-between space-y-5"
                         >
-                          <div>
+                          <div className="space-y-3">
                             <div className="flex items-start justify-between gap-2">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2.5">
                                 <span className="font-mono text-2xl font-black text-foreground group-hover:text-primary transition-colors">
                                   {p.code}
                                 </span>
-                                {item.country === "US" ? (
-                                  <UsFlagBadge className="w-4 h-2.5 rounded-xs" />
-                                ) : item.country === "CA" ? (
-                                  <CaFlagBadge className="w-4 h-2.5 rounded-xs" />
-                                ) : item.country === "TF" ? (
-                                  <Phone className="size-3 text-emerald-500" />
-                                ) : (
-                                  <Globe2 className="size-3 text-amber-500" />
-                                )}
+                                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-white/10">
+                                  {item.country}
+                                </span>
                               </div>
-                              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-semibold">
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 font-semibold border border-slate-200/60 dark:border-white/10">
                                 {item.tzLabel}
                               </span>
                             </div>
 
-                            <div className="mt-2 space-y-0.5">
+                            <div className="space-y-1">
                               <h3 className="font-bold text-sm text-foreground truncate" title={isAr ? p.nameAr : p.nameEn}>
                                 {isAr ? p.nameAr : p.nameEn}
                               </h3>
-                              <p className="text-[11px] text-muted-foreground truncate" title={item.cities.join(", ")}>
+                              <p className="text-xs text-slate-600 dark:text-slate-300 truncate" title={item.cities.join(", ")}>
                                 {item.cities.slice(0, 2).join(", ")}
                               </p>
                             </div>
                           </div>
 
-                          <div className="pt-2.5 border-t border-border/60 space-y-2.5">
+                          <div className="pt-3.5 border-t border-slate-100 dark:border-white/10 space-y-3.5">
                             {/* Live Time & TCPA Status */}
                             <div className="flex items-center justify-between text-xs">
                               <span className="font-mono font-bold text-foreground">
                                 {clock.time}
                               </span>
                               <span
-                                className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${item.risk
-                                    ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30"
+                                className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full ${
+                                  item.risk
+                                    ? "bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30"
                                     : win.status === "good"
-                                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
-                                      : win.status === "caution"
-                                        ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30"
-                                        : "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30"
-                                  }`}
+                                      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
+                                      : "bg-slate-500/15 text-slate-700 dark:text-slate-300 border border-slate-500/30"
+                                }`}
                               >
                                 <span
-                                  className={`size-1.5 rounded-full ${item.risk
-                                      ? "bg-rose-500 animate-ping"
+                                  className={`size-1.5 rounded-full ${
+                                    item.risk
+                                      ? "bg-rose-500"
                                       : win.status === "good"
                                         ? "bg-emerald-500"
-                                        : win.status === "caution"
-                                          ? "bg-amber-500"
-                                          : "bg-rose-500"
-                                    }`}
+                                        : "bg-slate-400"
+                                  }`}
                                 />
                                 <span>
                                   {item.risk
                                     ? (isAr ? "احتيال" : "Fraud Risk")
                                     : win.status === "good"
                                       ? (isAr ? "مسموح" : "Safe")
-                                      : win.status === "caution"
-                                        ? (isAr ? "يقارب الإغلاق" : "Closing")
-                                        : (isAr ? "ممنوع" : "Closed")}
+                                      : (isAr ? "مغلق" : "Closed")}
                                 </span>
                               </span>
                             </div>
 
                             <button
                               onClick={() => handleSearch(p.code)}
-                              className="w-full py-1.5 px-2.5 rounded-xl bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                              className="btn-secondary w-full text-xs py-2"
                             >
-                              <span>{isAr ? "تحليل الكود" : "Inspect Dossier"}</span>
-                              <span className="text-[11px]">→</span>
+                              <span>{isAr ? "فحص الكود" : "Inspect Dossier"}</span>
+                              <span className="text-[11px] group-hover:translate-x-0.5 transition-transform">→</span>
                             </button>
                           </div>
                         </div>
                       );
                     })}
                   </div>
+
+                  <div className="mt-5 flex justify-center">
+                    <button
+                      onClick={() => setShowAllClocks(!showAllClocks)}
+                      className="btn-secondary px-5 py-2.5 text-xs"
+                    >
+                      {showAllClocks ? (
+                        <>
+                          <span>{isAr ? "عرض أقل (4 مراكز رئيسية)" : "Show Less (4 Primary Hubs)"}</span>
+                          <ChevronUp className="size-3.5" />
+                        </>
+                      ) : (
+                        <>
+                          <span>{isAr ? "عرض المزيد (4 مراكز إضافية)" : "Explore 4 More Telephony Hubs"}</span>
+                          <ChevronDown className="size-3.5" />
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
+
+                <div className="border-t border-slate-200/80 dark:border-white/10" />
 
                 {/* SECTION 3: ENTERPRISE EDITORIAL ASYMMETRIC SPLIT */}
                 <EnterpriseEditorialSplit
@@ -1618,43 +1625,66 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                   isAr={isAr}
                 />
 
+                <div className="border-t border-slate-200/80 dark:border-white/10" />
+
                 {/* SECTION 4: INVERTED DARK EDITORIAL SECTION ("NUMBERS TELL THE STORY") */}
                 <InvertedNumbersSection
                   onSelectCode={handleSearch}
                   isAr={isAr}
                 />
 
-                {/* SECTION 4: VISUAL OPERATIONS RADAR BANNER - ASYMMETRIC SPLIT WITH OPERATIONS ROOM */}
-                <div className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-indigo-500/10 p-6 sm:p-8 md:p-10 shadow-md">
-                  <div className="pointer-events-none absolute -right-20 -bottom-20 w-80 h-80 bg-primary/10 blur-3xl rounded-full" />
+                <div className="border-t border-slate-200/80 dark:border-white/10" />
 
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                {/* SECTION 5: VISUAL OPERATIONS RADAR BANNER */}
+                <div className="relative overflow-hidden rounded-3xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/95 p-6 sm:p-8 lg:p-10 shadow-xl shadow-slate-200/40 dark:shadow-2xl">
+                  {/* Subtle Ambient Depth Glows */}
+                  <div className="pointer-events-none absolute -right-24 -top-24 size-80 bg-primary/10 blur-[90px] rounded-full" />
+                  <div className="pointer-events-none absolute -left-24 -bottom-24 size-80 bg-indigo-500/10 blur-[90px] rounded-full" />
+
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center relative z-10">
                     <div className="lg:col-span-7 space-y-4">
-                      <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1 text-xs font-mono font-bold text-primary shadow-xs">
                         <Navigation className="size-3.5" />
-                        <span>{isAr ? "غرفة عمليات الاتصالات التفاعلية" : "Visual Operations Radar Room"}</span>
+                        <span>{isAr ? "غرفة عمليات الاتصالات التفاعلية" : "VISUAL OPERATIONS RADAR ROOM"}</span>
                       </div>
 
-                      <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-tight">
+                      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-extrabold text-slate-900 dark:text-white tracking-tight">
                         {isAr ? "خريطة جغرافية حية لمناطق التوقيت والمفاتيح الهاتفية" : "Interactive North American Telecom & Timezone Map"}
                       </h2>
 
-                      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                      <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl font-normal">
                         {isAr
                           ? "استكشف خرائط التغطية وتوزيع النطاقات الزمنية (الشرقي، المركزي، الجبلي، الهادئ، ألاسكا، وهاواي) مع تحديد مراكز الخدمة على خريطة Leaflet تفاعلية حية."
                           : "Visualize area code density across Eastern, Central, Mountain, Pacific, Alaska and Hawaii zones with live geocoded coordinate rate centers on our operations radar."}
                       </p>
 
-                      <div className="pt-2 flex items-center gap-3 flex-wrap">
+                      {/* Telecom Capability Badges */}
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 text-[11px] font-mono text-slate-700 dark:text-slate-300 font-medium">
+                          <span className="size-1.5 rounded-full bg-emerald-400" />
+                          {isAr ? "460+ مقسم جغرافي محدد" : "460+ Geocoded Rate Centers"}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 text-[11px] font-mono text-slate-700 dark:text-slate-300 font-medium">
+                          <span className="size-1.5 rounded-full bg-primary" />
+                          {isAr ? "9 نطاقات توقيت متزامنة" : "9 Synchronized Zones"}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 text-[11px] font-mono text-slate-700 dark:text-slate-300 font-medium">
+                          <span className="size-1.5 rounded-full bg-amber-400" />
+                          {isAr ? "محرك خرائط تفاعلي فائق الدقة" : "Leaflet Vector Engine"}
+                        </span>
+                      </div>
+
+                      <div className="pt-3 flex items-center gap-3 flex-wrap">
                         <button
                           onClick={() => {
                             setActiveTab("map");
                             window.scrollTo({ top: 0, behavior: "smooth" });
                           }}
-                          className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-xs sm:text-sm shadow-md shadow-primary/20 hover:brightness-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+                          className="btn-primary"
                         >
                           <Globe2 className="size-4" />
                           <span>{isAr ? "تشغيل الخريطة التفاعلية" : "Launch Telecom Map"}</span>
+                          <span className="text-xs transition-transform group-hover:translate-x-0.5">→</span>
                         </button>
 
                         <button
@@ -1662,7 +1692,7 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                             setActiveTab("browse");
                             window.scrollTo({ top: 0, behavior: "smooth" });
                           }}
-                          className="px-5 py-2.5 rounded-xl bg-card hover:bg-muted text-foreground font-semibold text-xs sm:text-sm border border-border shadow-xs active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+                          className="btn-secondary"
                         >
                           <Layers className="size-4" />
                           <span>{isAr ? "استعراض 460+ مفتاح" : "Browse All 460+ NPAs"}</span>
@@ -1677,26 +1707,40 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                           setActiveTab("map");
                           window.scrollTo({ top: 0, behavior: "smooth" });
                         }}
-                        className="relative rounded-2xl overflow-hidden border border-primary/40 shadow-xl group cursor-pointer"
+                        className="group relative rounded-2xl overflow-hidden border border-slate-200/90 dark:border-white/15 bg-slate-950 shadow-2xl hover:border-primary/50 transition-all duration-300 cursor-pointer"
                       >
-                        <img
-                          src="/images/operations-room.jpg"
-                          alt="Telecom Operations Center Radar"
-                          className="w-full h-56 sm:h-64 object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent" />
+                        <div className="relative aspect-[16/10] overflow-hidden">
+                          <img
+                            src="/images/operations-room.jpg"
+                            alt="Telecom Operations Center Radar"
+                            className="w-full h-full object-cover brightness-105 contrast-110 saturate-110 group-hover:scale-105 transition-all duration-700"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent pointer-events-none" />
 
-                        <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-card/90 backdrop-blur-md border border-primary/30 text-[10px] font-mono text-primary font-bold">
-                          <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          <span>LIVE TELEMETRY</span>
+                          <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-950/85 backdrop-blur-md border border-white/15 text-[10px] font-mono text-white font-bold">
+                            <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            <span>LIVE TELEMETRY RADAR</span>
+                          </div>
                         </div>
 
-                        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                          <span className="text-xs font-semibold text-foreground bg-card/85 px-3 py-1.5 rounded-xl border border-border/70 backdrop-blur-md flex items-center gap-1.5">
-                            <Globe2 className="size-3.5 text-primary" />
-                            <span>Click to open full map</span>
+                        <div className="p-3.5 bg-slate-900/95 dark:bg-slate-950 border-t border-slate-200/20 dark:border-white/10 flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="size-7 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
+                              <Globe2 className="size-4" />
+                            </div>
+                            <div>
+                              <div className="text-xs font-bold text-white">
+                                {isAr ? "الخريطة التفاعلية المتكاملة" : "Interactive Telecom Radar"}
+                              </div>
+                              <div className="text-[10px] font-mono text-slate-400">
+                                {isAr ? "اضغط لفتح الخريطة بالكامل" : "Click to expand full map"}
+                              </div>
+                            </div>
+                          </div>
+                          <span className="px-3 py-1.5 rounded-lg bg-primary/20 text-primary group-hover:bg-primary group-hover:text-primary-foreground font-mono text-xs font-bold transition-colors flex items-center gap-1">
+                            <span>{isAr ? "فتح الخريطة" : "Open Map"}</span>
+                            <span>→</span>
                           </span>
-                          <span className="text-[11px] font-mono text-primary font-bold">→</span>
                         </div>
                       </div>
                     </div>
@@ -1705,6 +1749,9 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
 
                 {/* TRUST & REGULATORY AUTHORITIES BAR */}
                 <TrustBar isAr={isAr} />
+
+                {/* Google AdSense: Mid-Page Leaderboard */}
+                <GoogleAdBanner format="horizontal" className="my-8" />
 
                 {/* SECTION: OPERATIONAL CASE STUDIES & ARCHITECTURAL TRUST */}
                 <EnterpriseTestimonials
@@ -1727,42 +1774,42 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="rounded-2xl bg-card/60 border border-border/70 p-5 space-y-2.5 shadow-2xs">
-                      <div className="size-8 rounded-xl bg-primary/10 text-primary font-mono font-black text-sm flex items-center justify-center">
+                    <div className="rounded-2xl bg-white dark:bg-card/60 border border-slate-200/90 dark:border-border/70 p-5 space-y-2.5 shadow-sm shadow-slate-200/50 dark:shadow-2xs">
+                      <div className="size-8 rounded-xl bg-primary/10 text-primary font-mono font-bold text-sm flex items-center justify-center border border-primary/20">
                         01
                       </div>
                       <h3 className="font-bold text-sm text-foreground">
                         {isAr ? "إدخال المفتاح أو الرقم أو القائمة" : "Input NPA, Number or Batch"}
                       </h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
+                      <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
                         {isAr
                           ? "أدخل كود المنطقة المكون من 3 أرقام أو رقماً هاتفياً كاملاً، أو الصق ملف بيانات العملاء في مستخرج الأرقام."
                           : "Type any 3-digit area code, full telephone number, or drop your CRM lead list into the bulk extraction workspace."}
                       </p>
                     </div>
 
-                    <div className="rounded-2xl bg-card/60 border border-border/70 p-5 space-y-2.5 shadow-2xs">
-                      <div className="size-8 rounded-xl bg-primary/10 text-primary font-mono font-black text-sm flex items-center justify-center">
+                    <div className="rounded-2xl bg-white dark:bg-card/60 border border-slate-200/90 dark:border-border/70 p-5 space-y-2.5 shadow-sm shadow-slate-200/50 dark:shadow-2xs">
+                      <div className="size-8 rounded-xl bg-primary/10 text-primary font-mono font-bold text-sm flex items-center justify-center border border-primary/20">
                         02
                       </div>
                       <h3 className="font-bold text-sm text-foreground">
                         {isAr ? "فحص التوقيت والامتثال لـ TCPA" : "Verify TCPA & Fraud Score"}
                       </h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
+                      <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
                         {isAr
                           ? "يقوم المحرك فورياً باحتساب التوقيت المحلي الفعلي للمستلم وتأكيد ما إذا كان يقع ضمن نافذة الاتصال القانونية المسموحة."
                           : "Our engine synchronizes with local rate-center clocks to evaluate TCPA legality (8 AM – 9 PM) and screens against Wangiri fraud."}
                       </p>
                     </div>
 
-                    <div className="rounded-2xl bg-card/60 border border-border/70 p-5 space-y-2.5 shadow-2xs">
-                      <div className="size-8 rounded-xl bg-primary/10 text-primary font-mono font-black text-sm flex items-center justify-center">
+                    <div className="rounded-2xl bg-white dark:bg-card/60 border border-slate-200/90 dark:border-border/70 p-5 space-y-2.5 shadow-sm shadow-slate-200/50 dark:shadow-2xs">
+                      <div className="size-8 rounded-xl bg-primary/10 text-primary font-mono font-bold text-sm flex items-center justify-center border border-primary/20">
                         03
                       </div>
                       <h3 className="font-bold text-sm text-foreground">
                         {isAr ? "الاتصال أو تصدير البيانات النظيفة" : "Execute Outreach or Export"}
                       </h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
+                      <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
                         {isAr
                           ? "باشر الاتصال بثقة مطلقة ودون خوف من الغرامات، أو قم بتصدير ملفات الأرقام المنسقة إلى Excel أو CSV."
                           : "Connect with recipients knowing you're fully compliant, or download clean, standardized lead dossiers to CSV or Excel."}
@@ -2821,6 +2868,11 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
             </div>
           </div>
         )}
+
+        {/* Google AdSense: Pre-Footer Banner */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <GoogleAdBanner format="auto" className="my-8" />
+        </div>
       </main>
 
       <Footer />

@@ -28,7 +28,7 @@ export const TrustBar: React.FC<TrustBarProps> = ({ isAr = false }) => {
               <h4 className="text-sm font-bold text-foreground">
                 {isAr ? "مصادر البيانات الرسمية وهيئات تنظيم الاتصالات" : "Authoritative Telecom Authorities & Data Sources"}
               </h4>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                 {isAr
                   ? "تتم مزامنة قواعد البيانات دورياً مع السجلات الفيدرالية الرسمية لضمان الدقة القانونية."
                   : "All prefixes and rate centers synchronized with authoritative federal numbering registries."}
@@ -36,7 +36,7 @@ export const TrustBar: React.FC<TrustBarProps> = ({ isAr = false }) => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-mono font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full">
+          <div className="flex items-center gap-2 text-xs font-mono font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-3 py-1.5 rounded-full">
             <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>{isAr ? "السجل محدّث لشهر سبتمبر 2026" : "Registry Verified • Sep 2026 Sync"}</span>
           </div>
@@ -47,16 +47,16 @@ export const TrustBar: React.FC<TrustBarProps> = ({ isAr = false }) => {
           {authorities.map((item, idx) => (
             <div
               key={idx}
-              className="p-3 rounded-2xl bg-card/70 border border-border/60 hover:border-primary/40 transition-colors flex flex-col justify-between"
+              className="p-3 rounded-2xl bg-white/80 dark:bg-card/70 border border-slate-200/90 dark:border-white/10 hover:border-primary/40 transition-colors flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold font-mono text-primary">{item.name}</span>
                   <CheckCircle2 className="size-3.5 text-emerald-500" />
                 </div>
-                <div className="text-[11px] text-muted-foreground mt-1 line-clamp-1">{item.desc}</div>
+                <div className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 line-clamp-1">{item.desc}</div>
               </div>
-              <div className="mt-2 text-[10px] font-mono text-foreground/80 px-1.5 py-0.5 rounded bg-muted/60 text-center font-medium">
+              <div className="mt-2 text-[10px] font-mono text-slate-700 dark:text-slate-200 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] border border-slate-200/60 dark:border-white/10 text-center font-medium">
                 {item.status}
               </div>
             </div>

@@ -63,9 +63,12 @@ export const InvertedNumbersSection: React.FC<InvertedNumbersSectionProps> = ({
   };
 
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-[#040813] text-slate-100 border border-blue-900/40 p-6 sm:p-10 lg:p-14 shadow-2xl">
+    <section className="relative overflow-hidden rounded-3xl bg-slate-900 dark:bg-[#040813] text-slate-100 border border-slate-800 dark:border-blue-900/40 p-6 sm:p-10 lg:p-12 shadow-2xl shadow-slate-950/25 ring-1 ring-slate-900/10 dark:ring-blue-500/20">
       {/* High-tech Background Ambient Grid & Radial Mesh */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(37,99,235,0.25),rgba(255,255,255,0))]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-blue-500/10 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/20 to-transparent" />
+      <div className="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 w-3/4 h-24 bg-blue-500/15 blur-3xl rounded-full" />
       <div className="pointer-events-none absolute -bottom-40 right-0 w-[500px] h-[500px] bg-indigo-600/[0.12] blur-[140px] rounded-full" />
       <div className="pointer-events-none absolute top-1/2 left-0 w-[400px] h-[400px] bg-emerald-600/[0.08] blur-[130px] rounded-full" />
 
@@ -88,7 +91,7 @@ export const InvertedNumbersSection: React.FC<InvertedNumbersSectionProps> = ({
           )}
         </h2>
 
-        <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-2xl">
+        <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl">
           {isAr
             ? "نُحدث قاعدة بيانات الترقيم لحظياً عبر الربط المباشر مع سجلات NANPA و FCC و LERG لضمان دقة الامتثال القانوني وحماية حملات الاتصال."
             : "Directly synchronized with official NANPA, FCC, and CRTC regulatory registries to guarantee zero-defect dialing and automated TCPA safe-harbor compliance."}
@@ -98,8 +101,8 @@ export const InvertedNumbersSection: React.FC<InvertedNumbersSectionProps> = ({
       {/* 4 Big Editorial Stat Blocks */}
       <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-10">
         {/* Stat 1: 460+ NPAs */}
-        <div className="relative rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] hover:border-blue-500/40 p-5 sm:p-6 transition-all space-y-3 group">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-mono">
+        <div className="relative rounded-2xl bg-white/[0.06] dark:bg-white/[0.04] hover:bg-white/[0.10] dark:hover:bg-white/[0.08] border border-white/10 hover:border-blue-500/40 p-5 sm:p-6 transition-all space-y-3 group">
+          <div className="flex items-center justify-between text-slate-300 text-xs font-mono">
             <span>REGISTRY COVERAGE</span>
             <span className="text-blue-400 flex items-center gap-1 font-bold">
               <span>NANPA Synced</span>
@@ -111,21 +114,21 @@ export const InvertedNumbersSection: React.FC<InvertedNumbersSectionProps> = ({
             <div className="font-mono text-3xl sm:text-4xl font-black text-white tracking-tight">
               460+
             </div>
-            <div className="text-xs font-semibold text-slate-300">
+            <div className="text-xs font-semibold text-slate-200">
               {isAr ? "كود منطقة نشط وموثق" : "Official Area Codes Indexed"}
             </div>
           </div>
 
           {/* Mini Sparkline context */}
-          <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between text-[11px] font-mono text-slate-400">
+          <div className="pt-2 border-t border-white/[0.10] flex items-center justify-between text-[11px] font-mono text-slate-300">
             <span>335 US • 42 CA</span>
             <span className="text-emerald-400">100% Verified</span>
           </div>
         </div>
 
         {/* Stat 2: $1,500 Fine Avoidance */}
-        <div className="relative rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] hover:border-emerald-500/40 p-5 sm:p-6 transition-all space-y-3 group">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-mono">
+        <div className="relative rounded-2xl bg-white/[0.06] dark:bg-white/[0.04] hover:bg-white/[0.10] dark:hover:bg-white/[0.08] border border-white/10 hover:border-emerald-500/40 p-5 sm:p-6 transition-all space-y-3 group">
+          <div className="flex items-center justify-between text-slate-300 text-xs font-mono">
             <span>TCPA SAFEGUARD</span>
             <span className="text-emerald-400 flex items-center gap-1 font-bold">
               <span>Zero Violations</span>
@@ -137,20 +140,20 @@ export const InvertedNumbersSection: React.FC<InvertedNumbersSectionProps> = ({
             <div className="font-mono text-3xl sm:text-4xl font-black text-emerald-400 tracking-tight">
               $1,500
             </div>
-            <div className="text-xs font-semibold text-slate-300">
+            <div className="text-xs font-semibold text-slate-200">
               {isAr ? "أقصى غرامة للمكالمة يتم تفاديها" : "Max Penalty Per Call Avoided"}
             </div>
           </div>
 
-          <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between text-[11px] font-mono text-slate-400">
+          <div className="pt-2 border-t border-white/[0.10] flex items-center justify-between text-[11px] font-mono text-slate-300">
             <span>Statutory Safe Harbor</span>
             <span className="text-emerald-400">8 AM – 9 PM Gated</span>
           </div>
         </div>
 
         {/* Stat 3: 9 Timezones Live */}
-        <div className="relative rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] hover:border-indigo-500/40 p-5 sm:p-6 transition-all space-y-3 group">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-mono">
+        <div className="relative rounded-2xl bg-white/[0.06] dark:bg-white/[0.04] hover:bg-white/[0.10] dark:hover:bg-white/[0.08] border border-white/10 hover:border-indigo-500/40 p-5 sm:p-6 transition-all space-y-3 group">
+          <div className="flex items-center justify-between text-slate-300 text-xs font-mono">
             <span>TIMEZONE ENGINE</span>
             <span className="text-indigo-400 flex items-center gap-1 font-bold">
               <span>Real-Time Clocks</span>
@@ -162,20 +165,20 @@ export const InvertedNumbersSection: React.FC<InvertedNumbersSectionProps> = ({
             <div className="font-mono text-3xl sm:text-4xl font-black text-white tracking-tight">
               9 Zones
             </div>
-            <div className="text-xs font-semibold text-slate-300">
+            <div className="text-xs font-semibold text-slate-200">
               {isAr ? "نطاقات زمنية محتسبة لحظياً" : "Synchronized Timezones"}
             </div>
           </div>
 
-          <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between text-[11px] font-mono text-slate-400">
+          <div className="pt-2 border-t border-white/[0.10] flex items-center justify-between text-[11px] font-mono text-slate-300">
             <span>UTC-2.5 to UTC-10</span>
             <span className="text-indigo-300">Auto DST Handled</span>
           </div>
         </div>
 
         {/* Stat 4: < 1ms In-Memory Resolution */}
-        <div className="relative rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] hover:border-amber-500/40 p-5 sm:p-6 transition-all space-y-3 group">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-mono">
+        <div className="relative rounded-2xl bg-white/[0.06] dark:bg-white/[0.04] hover:bg-white/[0.10] dark:hover:bg-white/[0.08] border border-white/10 hover:border-amber-500/40 p-5 sm:p-6 transition-all space-y-3 group">
+          <div className="flex items-center justify-between text-slate-300 text-xs font-mono">
             <span>QUERY LATENCY</span>
             <span className="text-amber-400 flex items-center gap-1 font-bold">
               <span>Zero-Lag</span>
@@ -187,12 +190,12 @@ export const InvertedNumbersSection: React.FC<InvertedNumbersSectionProps> = ({
             <div className="font-mono text-3xl sm:text-4xl font-black text-amber-400 tracking-tight">
               &lt; 1 ms
             </div>
-            <div className="text-xs font-semibold text-slate-300">
+            <div className="text-xs font-semibold text-slate-200">
               {isAr ? "زمن الاستعلام وفحص الامتثال" : "In-Memory Instant Lookup"}
             </div>
           </div>
 
-          <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between text-[11px] font-mono text-slate-400">
+          <div className="pt-2 border-t border-white/[0.10] flex items-center justify-between text-[11px] font-mono text-slate-300">
             <span>Client-Side Engine</span>
             <span className="text-amber-400">Offline Capable</span>
           </div>
@@ -200,18 +203,18 @@ export const InvertedNumbersSection: React.FC<InvertedNumbersSectionProps> = ({
       </div>
 
       {/* Live Timezone Horizon Strip */}
-      <div className="relative z-10 mt-10 pt-8 border-t border-white/[0.08] space-y-4">
+      <div className="relative z-10 mt-10 pt-8 border-t border-white/[0.10] space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2 text-xs font-mono font-bold text-slate-300">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold text-slate-200">
             <Globe2 className="size-4 text-blue-400" />
             <span>{isAr ? "رادار الأفق الزمني المباشر عبر أمريكا الشمالية:" : "Live Timezone Horizon Across North America:"}</span>
           </div>
-          <span className="text-[11px] font-mono text-slate-400">
+          <span className="text-[11px] font-mono text-slate-300">
             Current UTC: {time.toUTCString().slice(17, 25)}
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {HORIZON_TIMEZONES.map((zone) => {
             const h = getLocalHour(zone.utcOffset);
             const isSafe = h >= 8 && h < 21;
@@ -221,7 +224,7 @@ export const InvertedNumbersSection: React.FC<InvertedNumbersSectionProps> = ({
               <button
                 key={zone.id}
                 onClick={() => onSelectCode(zone.sampleCode)}
-                className="p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.07] border border-white/[0.07] hover:border-blue-500/40 text-left transition-all cursor-pointer group space-y-1.5"
+                className="p-3.5 rounded-xl bg-white/[0.05] dark:bg-white/[0.03] hover:bg-white/[0.10] dark:hover:bg-white/[0.08] border border-white/10 hover:border-blue-500/40 text-left transition-all cursor-pointer group space-y-2"
               >
                 <div className="flex items-center justify-between">
                   <span className="font-mono font-black text-xs text-white group-hover:text-blue-400 transition-colors">
@@ -234,9 +237,9 @@ export const InvertedNumbersSection: React.FC<InvertedNumbersSectionProps> = ({
                   />
                 </div>
 
-                <div className="font-mono text-xs font-bold text-slate-200">{formatted}</div>
+                <div className="font-mono text-sm font-bold text-slate-100">{formatted}</div>
 
-                <div className="text-[10px] text-slate-400 truncate flex items-center justify-between pt-1 border-t border-white/[0.06]">
+                <div className="text-[11px] text-slate-300 truncate flex items-center justify-between pt-1.5 border-t border-white/[0.08]">
                   <span>{zone.sampleCode} ({zone.sampleCityEn})</span>
                 </div>
               </button>

@@ -104,18 +104,18 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
     <section className="space-y-16 sm:space-y-24">
       {/* Section Header */}
       <div className="text-center max-w-3xl mx-auto">
-        <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1.5 text-xs font-semibold text-primary mb-3">
-          <ShieldCheck className="size-3.5" />
+        <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 px-3.5 py-1.5 text-xs font-semibold text-blue-700 dark:text-blue-400 mb-3 shadow-xs">
+          <ShieldCheck className="size-3.5 text-blue-600 dark:text-blue-400" />
           <span>{isAr ? "منظومة إنتك المتقدمة لذكاء الاتصالات" : "Enterprise Telephony & Compliance Engine"}</span>
         </div>
         <h2 className="text-2xl sm:text-4xl font-display font-black text-foreground tracking-tight leading-tight">
           {isAr ? (
             <>
-              بُنيت للحماية من <span className="text-gradient">الغرامات الفيدرالية</span> واحتيال الرنين الدولي
+              بُنيت للحماية من <span className="text-blue-700 dark:text-blue-400">الغرامات الفيدرالية</span> واحتيال الرنين الدولي
             </>
           ) : (
             <>
-              Engineered to Defend Against <span className="text-gradient">Statutory Penalties</span> & Toll Traps
+              Engineered to Defend Against <span className="text-blue-700 dark:text-blue-400">Statutory Penalties</span> & Toll Traps
             </>
           )}
         </h2>
@@ -129,15 +129,15 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
       {/* =========================================================================
           EDITORIAL SPLIT A: TCPA COMPLIANCE & CALLING WINDOW ENGINE
       ========================================================================= */}
-      <div className="relative rounded-3xl border border-border/80 bg-gradient-to-br from-card via-card/90 to-card/50 p-6 sm:p-8 lg:p-10 shadow-lg overflow-hidden">
+      <div className="relative rounded-3xl border border-slate-200/90 dark:border-border/80 bg-gradient-to-br from-white via-slate-50/80 to-blue-50/20 dark:from-card dark:via-card/90 dark:to-card/50 p-6 sm:p-8 lg:p-10 shadow-xl shadow-slate-200/50 dark:shadow-lg overflow-hidden">
         <div className="pointer-events-none absolute -top-32 -right-32 size-96 bg-emerald-500/[0.07] blur-[100px] rounded-full" />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Left Column: Editorial Copy + Interactive Time Slider */}
           <div className="lg:col-span-7 space-y-6">
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                <Clock className="size-3.5" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/80 dark:border-emerald-500/20 text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
+                <Clock className="size-3.5 text-emerald-600 dark:text-emerald-400" />
                 <span>47 CFR § 64.1200 • TCPA Safe Harbor</span>
               </div>
               <h3 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-tight">
@@ -145,7 +145,7 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
                   ? "لا تتصل خارج النافذة القانونية. احمِ مؤسستك من غرامات $1,500."
                   : "Never Dial Outside The Safe Window. Guaranteed."}
               </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                 {isAr
                   ? "يفرض قانون TCPA الفيدرالي وقوانين الولايات (مثل فلوريدا وأوكلاهوما) قيوداً صارمة تحظر الاتصال التسويقي قبل 8:00 صباحاً أو بعد 9:00 مساءً بتوقيت المستلم المحلي. تحسب منظومة إنتك التوقيت الدقيق لكل مقاطعة تلقائياً."
                   : "Federal TCPA statutes and state mini-TCPAs (e.g. Florida FTSA, Oklahoma) prohibit telemarketing before 8:00 AM or after 9:00 PM in the recipient’s local timezone. ENTEC computes millisecond-accurate safe harbor windows across all 50 states."}
@@ -153,7 +153,7 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
             </div>
 
             {/* Interactive 24-Hour Timeline Bar */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-card/80 border border-border/70 space-y-4 shadow-xs">
+            <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/80 dark:bg-card/80 border border-slate-200/80 dark:border-border/70 space-y-4 shadow-xs">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-foreground">
@@ -241,44 +241,44 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
               </div>
             </div>
 
-            <div className="flex items-center gap-3 pt-1">
+            <div className="flex items-center gap-3 pt-1 flex-wrap">
               <button
                 onClick={onNavigateToConverter}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-xs sm:text-sm font-semibold shadow-md shadow-emerald-600/20 hover:bg-emerald-500 active:scale-95 transition-all cursor-pointer"
+                className="btn-primary"
               >
-                <span>{isAr ? "فتح حاسبة التوقيت والمناطق" : "Open Full Timezone Calculator"}</span>
+                <span>{isAr ? "محول المناطق الزمنية" : "Timezone Converter"}</span>
                 <ArrowRight className="size-4" />
               </button>
               <button
                 onClick={() => onInspectCode(selectedTz.code)}
-                className="px-4 py-2.5 rounded-xl bg-card hover:bg-muted text-foreground text-xs sm:text-sm font-semibold border border-border transition-all cursor-pointer"
+                className="btn-secondary"
               >
-                {isAr ? `فحص كود المنطقة (${selectedTz.code})` : `Inspect NPA (${selectedTz.code})`}
+                {isAr ? `فحص الكود (${selectedTz.code})` : `Inspect NPA (${selectedTz.code})`}
               </button>
             </div>
           </div>
 
           {/* Right Column: Cinematic Call Center Visual with Live Dossier Card */}
           <div className="lg:col-span-5">
-            <div className="relative rounded-3xl overflow-hidden border border-emerald-500/30 shadow-xl group">
+            <div className="relative rounded-3xl overflow-hidden border border-emerald-500/40 shadow-2xl shadow-emerald-500/10 ring-1 ring-emerald-500/20 group">
               <img
                 src="/images/callcenter-pro.jpg"
                 alt="Professional Call Center Telecom Infrastructure"
-                className="w-full h-80 sm:h-96 object-cover group-hover:scale-105 transition-transform duration-700"
+                className="w-full h-80 sm:h-96 object-cover brightness-110 contrast-105 saturate-110 group-hover:scale-105 transition-all duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/25 to-transparent pointer-events-none" />
 
               {/* Floating Live Badge Top Left */}
-              <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/90 backdrop-blur-md border border-emerald-500/30 text-xs font-mono font-bold text-foreground">
+              <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/95 backdrop-blur-md border border-emerald-500/40 text-xs font-mono font-bold text-foreground shadow-md">
                 <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span>ACTIVE CALL SHIELD</span>
               </div>
 
               {/* Floating Inspection Card Bottom */}
-              <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl glass-panel border border-border/80 backdrop-blur-md space-y-2.5">
+              <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl glass-panel border border-white/20 dark:border-white/15 backdrop-blur-md space-y-2.5 shadow-xl">
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
-                    <div className="size-7 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-mono font-bold text-xs">
+                    <div className="size-7 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-mono font-bold text-xs border border-emerald-500/30">
                       {selectedTz.code}
                     </div>
                     <div>
@@ -287,14 +287,14 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
                     </div>
                   </div>
                   <div className="text-right font-mono">
-                    <div className="text-xs font-bold text-emerald-500">{isSafeWindow ? "APPROVED" : "STANDBY"}</div>
+                    <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{isSafeWindow ? "APPROVED" : "STANDBY"}</div>
                     <div className="text-[10px] text-muted-foreground">{displayTime()}</div>
                   </div>
                 </div>
 
                 <div className="pt-2 border-t border-border/60 flex items-center justify-between text-[11px] text-muted-foreground">
                   <span>Potential Penalty Risk:</span>
-                  <span className="font-bold text-foreground font-mono text-emerald-500">$0.00 (Protected)</span>
+                  <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400">$0.00 (Protected)</span>
                 </div>
               </div>
             </div>
@@ -305,13 +305,13 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
       {/* =========================================================================
           EDITORIAL SPLIT B: OFFSHORE TOLL FRAUD & WANGIRI INTERCEPTOR
       ========================================================================= */}
-      <div className="relative rounded-3xl border border-border/80 bg-gradient-to-br from-card via-card/90 to-card/50 p-6 sm:p-8 lg:p-10 shadow-lg overflow-hidden">
+      <div className="relative rounded-3xl border border-slate-200/90 dark:border-white/10 bg-gradient-to-br from-white via-slate-50/80 to-amber-50/20 dark:from-card dark:via-card/90 dark:to-card/50 p-6 sm:p-8 lg:p-10 shadow-xl shadow-slate-200/50 dark:shadow-2xl overflow-hidden">
         <div className="pointer-events-none absolute -bottom-32 -left-32 size-96 bg-amber-500/[0.07] blur-[100px] rounded-full" />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Left Column: Interactive Live Fraud Simulator */}
           <div className="lg:col-span-5 order-2 lg:order-1">
-            <div className="rounded-3xl border border-amber-500/30 bg-card/90 p-5 sm:p-6 space-y-5 shadow-xl relative overflow-hidden">
+            <div className="rounded-3xl border border-amber-300/80 dark:border-amber-500/30 bg-slate-50/95 dark:bg-card/95 p-5 sm:p-6 space-y-5 shadow-lg shadow-amber-500/5 relative overflow-hidden">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="size-8 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center">
@@ -322,7 +322,7 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
                     <div className="text-[10px] text-muted-foreground">Test NPA Surcharge Risk Index</div>
                   </div>
                 </div>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-200/80 dark:border-rose-500/30">
                   LIVE INTERCEPT
                 </span>
               </div>
@@ -339,17 +339,17 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
                       onClick={() => setSelectedFraud(s)}
                       className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                         selectedFraud.code === s.code
-                          ? "bg-amber-500/15 border-amber-500/50 shadow-xs"
-                          : "bg-muted/40 hover:bg-muted/80 border-border/70"
+                          ? "bg-amber-500/15 border-amber-500/50 shadow-xs ring-1 ring-amber-500/30"
+                          : "bg-white dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] border-slate-200/80 dark:border-white/10"
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-mono font-black text-xs text-foreground">{s.code}</span>
                         <span
-                          className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full ${
+                          className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full ${
                             s.riskScore > 70
-                              ? "bg-rose-500/15 text-rose-500"
-                              : "bg-emerald-500/15 text-emerald-500"
+                              ? "bg-rose-500/15 text-rose-600 dark:text-rose-400"
+                              : "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
                           }`}
                         >
                           {s.riskScore}/100
@@ -361,57 +361,93 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
                 </div>
               </div>
 
-              {/* Gauge & Analysis Result */}
-              <div className="p-4 rounded-2xl bg-card border border-border/80 space-y-3">
+              {/* Enhanced Prominent Risk Severity Gauge & Analysis Result */}
+              <div className="p-4 rounded-2xl bg-white dark:bg-white/[0.03] border border-slate-200/90 dark:border-white/10 space-y-4 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] font-mono uppercase text-muted-foreground">Classification</span>
+                    <span className="text-[10px] font-mono uppercase text-muted-foreground block">Classification</span>
                     <div className="font-bold text-xs text-foreground">{selectedFraud.typeEn}</div>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] font-mono uppercase text-muted-foreground">Tariff Potential</span>
+                    <span className="text-[10px] font-mono uppercase text-muted-foreground block">Tariff Potential</span>
                     <div className="font-bold font-mono text-xs text-amber-600 dark:text-amber-400">
                       {selectedFraud.rate}
                     </div>
                   </div>
                 </div>
 
-                {/* Visual Risk Gauge Meter */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-[11px] font-mono">
-                    <span className="text-muted-foreground">Risk Severity Score</span>
+                {/* Prominent Multi-Segment Risk Severity Meter */}
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-black/30 border border-slate-200/60 dark:border-white/10 space-y-2.5">
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">Risk Severity Index</span>
+                      <div className="flex items-baseline gap-1 mt-0.5">
+                        <span
+                          className={`font-mono text-2xl font-black ${
+                            selectedFraud.riskScore > 70
+                              ? "text-rose-600 dark:text-rose-400"
+                              : selectedFraud.riskScore > 30
+                              ? "text-amber-600 dark:text-amber-400"
+                              : "text-emerald-600 dark:text-emerald-400"
+                          }`}
+                        >
+                          {selectedFraud.riskScore}
+                        </span>
+                        <span className="text-xs font-mono text-muted-foreground font-semibold">/ 100</span>
+                      </div>
+                    </div>
+
                     <span
-                      className={`font-black ${
+                      className={`text-[10px] font-mono font-bold px-2.5 py-1 rounded-full border ${
                         selectedFraud.riskScore > 70
-                          ? "text-rose-500"
+                          ? "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30"
                           : selectedFraud.riskScore > 30
-                          ? "text-amber-500"
-                          : "text-emerald-500"
+                          ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                          : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
                       }`}
                     >
-                      {selectedFraud.riskScore} / 100
+                      {selectedFraud.riskScore > 70 ? "HIGH PENALTY FRAUD" : selectedFraud.riskScore > 30 ? "CAUTION SCREEN" : "CLEARED SAFE"}
                     </span>
                   </div>
-                  <div className="h-2.5 w-full bg-muted rounded-full overflow-hidden flex">
-                    <div
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        selectedFraud.riskScore > 70
-                          ? "bg-gradient-to-r from-amber-500 to-rose-500"
-                          : "bg-emerald-500"
-                      }`}
-                      style={{ width: `${Math.max(selectedFraud.riskScore, 4)}%` }}
-                    />
+
+                  {/* 5-Stage Visual Segmented Progress Bar */}
+                  <div className="grid grid-cols-5 gap-1.5 h-3">
+                    {[
+                      { threshold: 20, color: "bg-emerald-500" },
+                      { threshold: 40, color: "bg-emerald-400" },
+                      { threshold: 60, color: "bg-amber-400" },
+                      { threshold: 80, color: "bg-amber-500" },
+                      { threshold: 100, color: "bg-rose-500" },
+                    ].map((segment, idx) => {
+                      const isActive = selectedFraud.riskScore >= segment.threshold - 15;
+                      return (
+                        <div
+                          key={idx}
+                          className={`rounded-sm transition-all duration-500 ${
+                            isActive
+                              ? `${segment.color} shadow-xs`
+                              : "bg-slate-200 dark:bg-white/10"
+                          }`}
+                        />
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex items-center justify-between text-[9px] font-mono text-muted-foreground uppercase pt-0.5">
+                    <span>Safe</span>
+                    <span>Guarded</span>
+                    <span>Severe</span>
                   </div>
                 </div>
 
-                <p className="text-[11px] text-muted-foreground leading-relaxed pt-1 border-t border-border/60">
+                <p className="text-[11px] text-muted-foreground leading-relaxed pt-1 border-t border-slate-100 dark:border-white/10">
                   {isAr ? selectedFraud.warningAr : selectedFraud.warningEn}
                 </p>
               </div>
 
               <button
                 onClick={() => onInspectCode(selectedFraud.code)}
-                className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-xs transition-all hover:brightness-105 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                className="btn-primary w-full"
               >
                 <span>{isAr ? `فحص ملف الكود الكامل (${selectedFraud.code})` : `Inspect Full Dossier (${selectedFraud.code})`}</span>
                 <ArrowRight className="size-3.5" />
@@ -422,8 +458,8 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
           {/* Right Column: Editorial Copy */}
           <div className="lg:col-span-7 space-y-6 order-1 lg:order-2">
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
-                <Flame className="size-3.5" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/20 text-xs font-mono font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">
+                <Flame className="size-3.5 text-amber-600 dark:text-amber-400" />
                 <span>+1 Caribbean Fraud Shield • PRS Interception</span>
               </div>
               <h3 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-tight">
@@ -431,7 +467,7 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
                   ? "كشف احتيال الرنة الواحدة (Wangiri) ومصائد الفواتير قبل الاتصال."
                   : "Detect Offshore Toll Traps Before Your Dialers Connect."}
               </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                 {isAr
                   ? "تشترك 19 دولة كاريبية في كود الدولة +1 مع الولايات المتحدة وكندا، مما يجعل الأرقام تبدو محلية تماماً. تستغل شبكات الاحتيال هذه الثغرة بإجراء رنة واحدة لتشجيع الضحية على معاودة الاتصال، ثم احتساب تعرفة دولية تصل إلى $30 للدقيقة. يقوم نظام إنتك بفرز وتصنيف هذه الأكواد فورياً."
                   : "Nineteen Caribbean and North Atlantic nations share the +1 country code with the US and Canada, masquerading as standard domestic telephone numbers. Fraud syndicates generate one-ring robocalls to provoke callbacks that bill unsuspecting victims up to $30/minute. ENTEC instantly flags high-surcharge non-domestic NPAs."}
@@ -439,7 +475,7 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              <div className="p-4 rounded-2xl bg-card/70 border border-border/70 space-y-1.5">
+              <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-card/70 border border-slate-200/80 dark:border-white/10 space-y-1.5">
                 <div className="flex items-center gap-2 font-bold text-xs text-foreground">
                   <Zap className="size-3.5 text-amber-500" />
                   <span>{isAr ? "19 مفتاح كاريبي موثق" : "19 Caribbean NPAs Indexed"}</span>
@@ -451,7 +487,7 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-card/70 border border-border/70 space-y-1.5">
+              <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-card/70 border border-slate-200/80 dark:border-white/10 space-y-1.5">
                 <div className="flex items-center gap-2 font-bold text-xs text-foreground">
                   <Lock className="size-3.5 text-primary" />
                   <span>{isAr ? "تنظيف القوائم قبل الحقن" : "Pre-Dial CRM Lead Cleansing"}</span>
@@ -464,19 +500,19 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
               </div>
             </div>
 
-            <div className="flex items-center gap-3 pt-1">
+            <div className="flex items-center gap-3 pt-1 flex-wrap">
               <button
                 onClick={onNavigateToBulk}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs sm:text-sm font-semibold shadow-md shadow-amber-600/20 active:scale-95 transition-all cursor-pointer"
+                className="btn-primary"
               >
-                <span>{isAr ? "استخراج وفلترة الأرقام بالجملة" : "Launch Bulk Lead Cleanser"}</span>
+                <span>{isAr ? "تنظيف وفلترة الأرقام" : "Clean Lead Lists"}</span>
                 <ArrowRight className="size-4" />
               </button>
               <button
                 onClick={() => onInspectCode("876")}
-                className="px-4 py-2.5 rounded-xl bg-card hover:bg-muted text-foreground text-xs sm:text-sm font-semibold border border-border transition-all cursor-pointer"
+                className="btn-secondary"
               >
-                {isAr ? "تحليل كود جامايكا (876)" : "Screen Jamaica NPA (876)"}
+                {isAr ? "فحص كود جامايكا (876)" : "Screen Jamaica (876)"}
               </button>
             </div>
           </div>

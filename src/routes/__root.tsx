@@ -90,6 +90,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-title", content: COMPANY.name },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      // Google AdSense Account Verification
+      { name: "google-adsense-account", content: "ca-pub-7997346618896033" },
 
       // Open Graph (Facebook, LinkedIn, Discord, WhatsApp)
       { property: "og:site_name", content: COMPANY.brand },
@@ -142,6 +144,27 @@ function RootShell({ children }: { children: ReactNode }) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(COMPANY.jsonLd) }}
+        />
+        {/* Google AdSense Script */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7997346618896033"
+          crossOrigin="anonymous"
+        />
+        {/* Google Analytics / Google Tag Manager (gtag.js) */}
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-XDZD19YSQS"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-XDZD19YSQS');
+            `,
+          }}
         />
       </head>
       <body>

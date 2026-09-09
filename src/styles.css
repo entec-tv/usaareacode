@@ -62,6 +62,11 @@
 :root {
   --radius: 0.85rem;
 
+  /* 3-Tier Elevation System (Light Mode) */
+  --elevation-0: oklch(0.955 0.012 245);
+  --elevation-1: rgba(248, 250, 253, 0.88);
+  --elevation-2: oklch(0.925 0.018 250);
+
   /* Apple Light Glass Ethereal Canvas - Refined Eye Comfort Palette */
   --background: oklch(0.955 0.012 245);
   --foreground: oklch(0.18 0.03 260);
@@ -94,6 +99,7 @@
   --warning-foreground: #ffffff;
 
   --border: rgba(15, 40, 90, 0.09);
+  --border-subtle: rgba(15, 40, 90, 0.06);
   --input: rgba(15, 40, 90, 0.06);
   --ring: rgba(0, 113, 227, 0.4);
 
@@ -133,69 +139,79 @@
 }
 
 .dark {
-  --background: oklch(0.21 0.04 264.7);
+  /* 3-Tier Elevation System (Dark Mode) */
+  --elevation-0: oklch(0.18 0.035 264.7); /* Deep canvas background */
+  --elevation-1: oklch(0.24 0.04 262);    /* Card surface - step lighter */
+  --elevation-2: oklch(0.30 0.045 260);   /* Raised elements / inner containers */
+
+  --background: oklch(0.18 0.035 264.7);
   --foreground: oklch(0.97 0.008 247.9);
-  --card: oklch(0.26 0.04 262);
+  --card: oklch(0.24 0.04 262);
   --card-foreground: oklch(0.97 0.008 247.9);
-  --popover: oklch(0.24 0.04 262);
+  --popover: oklch(0.22 0.04 262);
   --popover-foreground: oklch(0.97 0.008 247.9);
 
-  --primary: oklch(0.78 0.14 220);
-  --primary-foreground: oklch(0.19 0.04 264.7);
+  /* Unified Neon/Apple Cyan-Blue Primary */
+  --primary: oklch(0.76 0.13 220);
+  --primary-foreground: oklch(0.15 0.03 264.7);
 
-  --secondary: oklch(0.55 0.19 274);
-  --secondary-foreground: oklch(0.98 0.005 250);
+  --secondary: oklch(0.30 0.045 260);
+  --secondary-foreground: oklch(0.96 0.01 250);
 
-  --muted: oklch(0.3 0.035 262);
-  --muted-foreground: oklch(0.72 0.03 256);
+  /* Calibrated for WCAG AA (>= 4.5:1 on dark surfaces) */
+  --muted: oklch(0.28 0.035 262);
+  --muted-foreground: oklch(0.80 0.02 250);
 
-  --accent: oklch(0.34 0.05 260);
-  --accent-foreground: oklch(0.95 0.01 250);
+  --accent: oklch(0.32 0.045 260);
+  --accent-foreground: oklch(0.96 0.01 250);
 
-  --destructive: oklch(0.64 0.22 22);
+  /* Desaturated by 10-15% for dark background eye comfort (no fluorescent glare) */
+  --destructive: oklch(0.60 0.18 24);
   --destructive-foreground: oklch(0.98 0.01 250);
 
-  --success: oklch(0.75 0.17 156);
-  --success-foreground: oklch(0.19 0.04 264.7);
+  --success: oklch(0.70 0.14 156);
+  --success-foreground: oklch(0.15 0.03 264.7);
 
-  --warning: oklch(0.82 0.16 82);
-  --warning-foreground: oklch(0.19 0.04 264.7);
+  --warning: oklch(0.76 0.13 82);
+  --warning-foreground: oklch(0.15 0.03 264.7);
 
-  --border: oklch(0.98 0.01 250 / 12%);
-  --input: oklch(0.98 0.01 250 / 16%);
-  --ring: oklch(0.78 0.14 220 / 70%);
+  /* Crisp 1px semi-transparent borders for visual separation */
+  --border: rgba(255, 255, 255, 0.10);
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: oklch(0.76 0.13 220 / 60%);
 
-  --chart-1: oklch(0.78 0.14 220);
+  --chart-1: oklch(0.76 0.13 220);
   --chart-2: oklch(0.62 0.18 274);
-  --chart-3: oklch(0.75 0.17 156);
-  --chart-4: oklch(0.82 0.16 82);
-  --chart-5: oklch(0.68 0.2 12);
+  --chart-3: oklch(0.70 0.14 156);
+  --chart-4: oklch(0.76 0.13 82);
+  --chart-5: oklch(0.62 0.18 16);
 
-  --sidebar: oklch(0.24 0.04 262);
+  --sidebar: oklch(0.22 0.04 262);
   --sidebar-foreground: oklch(0.97 0.008 247.9);
-  --sidebar-primary: oklch(0.78 0.14 220);
-  --sidebar-primary-foreground: oklch(0.19 0.04 264.7);
-  --sidebar-accent: oklch(0.32 0.045 260);
+  --sidebar-primary: oklch(0.76 0.13 220);
+  --sidebar-primary-foreground: oklch(0.15 0.03 264.7);
+  --sidebar-accent: oklch(0.30 0.045 260);
   --sidebar-accent-foreground: oklch(0.97 0.008 247.9);
-  --sidebar-border: oklch(0.98 0.01 250 / 12%);
-  --sidebar-ring: oklch(0.78 0.14 220 / 70%);
+  --sidebar-border: rgba(255, 255, 255, 0.10);
+  --sidebar-ring: oklch(0.76 0.13 220 / 60%);
 
   --gradient-hero: radial-gradient(
       1100px 520px at 12% -10%,
-      oklch(0.78 0.14 220 / 0.22),
+      oklch(0.76 0.13 220 / 0.20),
       transparent 60%
     ),
-    radial-gradient(900px 520px at 92% 0%, oklch(0.55 0.19 274 / 0.24), transparent 62%);
+    radial-gradient(900px 520px at 92% 0%, oklch(0.55 0.19 274 / 0.20), transparent 62%);
   --gradient-brand: linear-gradient(
     100deg,
-    oklch(0.82 0.13 208),
-    oklch(0.72 0.15 235) 45%,
-    oklch(0.6 0.19 278)
+    oklch(0.80 0.12 208),
+    oklch(0.72 0.14 235) 45%,
+    oklch(0.60 0.18 278)
   );
-  --glass-bg: oklch(0.98 0.01 250 / 0.06);
-  --glass-border: oklch(0.98 0.01 250 / 0.12);
-  --shadow-glow: 0 0 0 1px oklch(0.78 0.14 220 / 0.18), 0 24px 60px -24px oklch(0.78 0.14 220 / 0.45);
-  --shadow-panel: 0 30px 80px -40px oklch(0.1 0.03 264 / 0.9);
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --shadow-glow: 0 0 0 1px oklch(0.76 0.13 220 / 0.18), 0 24px 60px -24px oklch(0.76 0.13 220 / 0.35);
+  --shadow-panel: 0 20px 60px -20px rgba(0, 0, 0, 0.7);
 }
 
 @layer base {
@@ -256,11 +272,11 @@
 @utility glass-panel {
   background: linear-gradient(
     160deg,
-    rgba(248, 251, 255, 0.92),
-    rgba(240, 246, 254, 0.78)
+    rgba(248, 251, 255, 0.95),
+    rgba(235, 244, 255, 0.87)
   );
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: var(--shadow-panel);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.10), 0 1px 2px 0 rgba(15, 23, 42, 0.06), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(24px) saturate(170%);
   -webkit-backdrop-filter: blur(24px) saturate(170%);
   border-radius: var(--radius-2xl);
@@ -308,6 +324,80 @@
   &:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-glow);
+  }
+}
+
+@utility btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px -2px rgba(0, 113, 227, 0.35);
+  cursor: pointer;
+  border: 1px solid transparent;
+
+  &:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px -2px rgba(0, 113, 227, 0.45);
+  }
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.dark .btn-primary {
+  box-shadow: 0 4px 16px -2px oklch(0.76 0.13 220 / 0.35);
+  &:hover {
+    box-shadow: 0 6px 24px -2px oklch(0.76 0.13 220 / 0.5);
+  }
+}
+
+@utility btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1e293b;
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
+  cursor: pointer;
+
+  &:hover {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.30);
+    transform: translateY(-1px);
+  }
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.dark .btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f1f5f9;
+  border: 1px solid rgba(255, 255, 255, 0.30);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.55);
+    color: #ffffff;
   }
 }
 
@@ -457,5 +547,39 @@
 .custom-area-marker {
   background: transparent !important;
   border: none !important;
+}
+
+/* ==========================================================================
+   Google AdSense / Monetization Design Tokens
+   ========================================================================== */
+.ad-space-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  text-align: center;
+}
+
+.ad-space-container.banner {
+  min-height: 90px;
+  max-width: 728px;
+  margin: 1.5rem auto;
+}
+
+.ad-space-container.large {
+  min-height: 250px;
+  max-width: 336px;
+  margin: 1.5rem auto;
+}
+
+ins.adsbygoogle {
+  display: block;
+  margin: 0 auto;
+  text-align: center;
 }
 
