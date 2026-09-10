@@ -262,7 +262,7 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
           <div className="lg:col-span-5">
             <div className="relative rounded-3xl overflow-hidden border border-emerald-500/40 shadow-2xl shadow-emerald-500/10 ring-1 ring-emerald-500/20 group">
               <img
-                src="/images/callcenter-pro.jpg"
+                src="/images/callcenter-pro.webp"
                 alt="Professional Call Center Telecom Infrastructure"
                 className="w-full h-80 sm:h-96 object-cover brightness-110 contrast-105 saturate-110 group-hover:scale-105 transition-all duration-700"
               />

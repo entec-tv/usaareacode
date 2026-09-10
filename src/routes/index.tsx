@@ -1649,7 +1649,7 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                       >
                         <div className="relative aspect-[16/10] overflow-hidden">
                           <img
-                            src="/images/operations-room.jpg"
+                            src="/images/operations-room.webp"
                             alt="Telecom Operations Center Radar"
                             className="w-full h-full object-cover brightness-105 contrast-110 saturate-110 group-hover:scale-105 transition-all duration-700"
                           />
