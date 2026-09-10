@@ -587,6 +587,7 @@ function AreaCodeMapCard({
       isAr={isAr}
       onNavigateToRadar={onNavigateToRadar}
     />
+    </Suspense>
   );
 }
 
@@ -2160,6 +2161,7 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                 heroResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
               }}
             />
+            </Suspense>
 
             {/* Timezone Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
