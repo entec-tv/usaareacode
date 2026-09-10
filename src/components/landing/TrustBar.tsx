@@ -25,9 +25,9 @@ export const TrustBar: React.FC<TrustBarProps> = ({ isAr = false }) => {
               <ShieldCheck className="size-5" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-foreground">
+              <p className="text-sm font-bold text-foreground">
                 {isAr ? "مصادر البيانات الرسمية وهيئات تنظيم الاتصالات" : "Authoritative Telecom Authorities & Data Sources"}
-              </h4>
+              </p>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                 {isAr
                   ? "تتم مزامنة قواعد البيانات دورياً مع السجلات الفيدرالية الرسمية لضمان الدقة القانونية."

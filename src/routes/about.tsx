@@ -31,7 +31,7 @@ function AboutPage() {
         {/* Header Section */}
         <div className="text-center max-w-3xl mx-auto mb-14">
           <div className="size-24 mx-auto mb-5 rounded-3xl p-1 bg-gradient-to-br from-cyan-500/30 via-primary/20 to-indigo-600/30 border border-cyan-400/40 shadow-[0_0_35px_rgba(6,182,212,0.35)] overflow-hidden">
-            <img src="/entec-logo.jpg" alt="ENTEC Logo" className="w-full h-full object-cover rounded-[20px]" />
+            <img src="/entec-logo.webp" alt="ENTEC Logo" className="w-full h-full object-cover rounded-[20px]" />
           </div>
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary mb-4">
             <Building2 className="size-3.5 text-primary" />

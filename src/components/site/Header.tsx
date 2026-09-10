@@ -225,7 +225,7 @@ export function Header({ activeTab, onSelectTab }: HeaderProps) {
         >
           <div className="relative size-9 rounded-xl overflow-hidden p-0.5 bg-gradient-to-br from-blue-500/20 via-primary/10 to-indigo-500/20 border border-blue-400/30 shadow-xs group-hover:border-blue-500/60 transition-all shrink-0">
             <img
-              src="/entec-logo.jpg"
+              src="/entec-logo.webp"
               alt="ENTEC Logo"
               className="w-full h-full object-cover rounded-[8px]"
             />

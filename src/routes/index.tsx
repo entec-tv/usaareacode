@@ -265,9 +265,9 @@ function AreaCodeCard({
 
             {/* Region Details & Badges */}
             <div className="space-y-1 min-w-0">
-              <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight leading-snug truncate">
+              <div className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight leading-snug truncate">
                 {item.regionName} • {item.region}
-              </h3>
+              </div>
               <div className="flex items-center gap-2 flex-wrap text-xs text-slate-600 dark:text-slate-300">
                 <span className="inline-flex items-center gap-1.5 font-medium">
                   {item.country === "US" ? (

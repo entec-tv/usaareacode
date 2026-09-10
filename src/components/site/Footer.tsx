@@ -47,7 +47,7 @@ export function Footer() {
           <div className="flex items-center gap-3">
             <div className="size-11 rounded-2xl overflow-hidden p-0.5 bg-white dark:bg-slate-900 border border-primary/30 dark:border-primary/40 shadow-sm dark:shadow-[0_0_15px_rgba(59,130,246,0.25)] shrink-0">
               <img
-                src="/entec-logo.jpg"
+                src="/entec-logo.webp"
                 alt="ENTEC Logo"
                 className="w-full h-full object-cover rounded-[10px]"
               />

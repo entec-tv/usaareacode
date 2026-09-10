@@ -32,7 +32,7 @@ export const COMPANY = {
 
   // Online Presence & URLs
   url: "https://usaareacodea.com",
-  logoUrl: "https://usaareacodea.com/entec-logo.jpg",
+  logoUrl: "https://usaareacodea.com/entec-logo.webp",
   canonicalDomain: "usaareacodea.com",
 
   // Social & Registry Profiles
@@ -60,7 +60,7 @@ export const COMPANY = {
         "name": "ENTEC",
         "legalName": "ENTEC LLC",
         "url": "https://usaareacodea.com",
-        "logo": "https://usaareacodea.com/entec-logo.jpg",
+        "logo": "https://usaareacodea.com/entec-logo.webp",
         "email": "info@entec.store",
         "contactPoint": {
           "@type": "ContactPoint",
