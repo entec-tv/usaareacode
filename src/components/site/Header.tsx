@@ -230,6 +230,11 @@ export function Header({ activeTab, onSelectTab }: HeaderProps) {
               className="w-full h-full object-cover rounded-[8px]"
             />
           </div>
+          {/* Mobile: short brand name only */}
+          <span className="sm:hidden font-display text-sm font-extrabold tracking-tight text-gradient">
+            ENTEC
+          </span>
+          {/* sm+: full brand with subtitle */}
           <span className="leading-tight hidden sm:block">
             <span className="block font-display text-sm font-extrabold tracking-tight text-gradient">
               ENTEC
@@ -505,6 +510,7 @@ export function Header({ activeTab, onSelectTab }: HeaderProps) {
             }}
             className="inline-flex items-center gap-1.5 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-400 hover:bg-red-500/20 hover:border-red-500/50 transition-all cursor-pointer shadow-xs"
             title={isAr ? "الإبلاغ عن رقم احتيالي" : "Report Phone Scam"}
+            aria-label={isAr ? "الإبلاغ عن رقم احتيالي" : "Report Phone Scam"}
           >
             <ShieldAlert className="size-3.5" />
             <span className="hidden sm:inline">{isAr ? "إبلاغ عن احتيال" : "Report Scam"}</span>

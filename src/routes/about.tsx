@@ -7,6 +7,16 @@ import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/about")({
   component: AboutPage,
+  head: () => ({
+    meta: [
+      { title: `About Us | ${COMPANY.name} Phone Intelligence` },
+      { 
+        name: "description", 
+        content: "Learn about ENTEC's mission to provide authoritative North American Numbering Plan (NANP) intelligence, area code lookups, and robocall fraud mitigation." 
+      },
+      { name: "keywords", content: "about ENTEC, phone intelligence company, NANP data provider, area code lookup company" }
+    ]
+  }),
 });
 
 function AboutPage() {

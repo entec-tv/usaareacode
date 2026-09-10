@@ -80,28 +80,15 @@ export const GoogleAdBanner: React.FC<GoogleAdBannerProps> = ({
       )}
 
       {isDev ? (
-        // Development Preview Container (Avoids empty space & CLS during local dev)
+        // Development: minimal collapsed indicator — does not disrupt page layout
         <div
-          style={{ minHeight, ...style }}
-          className="w-full max-w-4xl rounded-lg border border-dashed border-sky-500/30 bg-sky-50/50 dark:bg-sky-950/20 p-4 flex flex-col items-center justify-center text-xs text-muted-foreground backdrop-blur-sm shadow-xs"
+          className="w-full max-w-4xl rounded border border-dashed border-sky-400/20 bg-sky-50/30 dark:bg-sky-950/10 px-3 py-1.5 flex items-center gap-2 text-[10px] text-sky-600/60 dark:text-sky-400/50 font-mono"
+          title={`AdSense Dev Slot — ${format}${slot ? ` | ${slot}` : ""}`}
         >
-          <div className="flex items-center gap-2 font-medium text-sky-600 dark:text-sky-400">
-            <svg
-              className="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-            </svg>
-            <span>Google AdSense Slot ({format})</span>
-          </div>
-          <p className="mt-1 text-[11px] text-muted-foreground/80">
-            Client: <code className="font-mono text-foreground/90">{GOOGLE_ADS_CONFIG.client}</code>
-            {slot ? <> · Slot ID: <code className="font-mono text-foreground/90">{slot}</code></> : " · Auto Layout"}
-          </p>
-          <span className="mt-2 text-[10px] px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/50 text-sky-700 dark:text-sky-300 font-medium">
-            Active in Production Build
-          </span>
+          <svg className="w-3 h-3 shrink-0 opacity-60" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+          </svg>
+          <span className="opacity-60">AdSense · {format}{slot ? ` · ${slot}` : ""} · dev only</span>
         </div>
       ) : (
         // Production Google AdSense Tag

@@ -19,8 +19,20 @@ import { useI18n } from "@/lib/i18n";
 import { fetchPublishedArticles, type ArticleRecord } from "@/lib/collections";
 import { isFirebaseConfigured } from "@/lib/firebase";
 
+import { COMPANY } from "@/data/company";
+
 export const Route = createFileRoute("/blog")({
   component: BlogPage,
+  head: () => ({
+    meta: [
+      { title: `Telecom Research & Blog | ${COMPANY.name}` },
+      { 
+        name: "description", 
+        content: "Read the latest telecommunications insights, area code updates, and technical analyses on NANP from the ENTEC Research Team." 
+      },
+      { name: "keywords", content: "telecom blog, area code news, NANP updates, robocall mitigation research" }
+    ]
+  }),
 });
 
 const DEFAULT_POSTS: ArticleRecord[] = [
@@ -267,6 +279,30 @@ function BlogPage() {
       )}
 
       <Footer />
+
+      {/* Structured Data for Blog */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Blog",
+            "name": "ENTEC Telecom Research & Blog",
+            "description": "Latest Telecommunications Insights & Reports",
+            "url": `${COMPANY.url}/blog`,
+            "blogPost": displayArticles.map((post) => ({
+              "@type": "BlogPosting",
+              "headline": post.title,
+              "datePublished": post.date,
+              "author": {
+                "@type": "Organization",
+                "name": getAuthor(post.author)
+              },
+              "description": post.excerpt
+            }))
+          }).replace(/</g, '\\u003c')
+        }}
+      />
     </div>
   );
 }

@@ -73,12 +73,14 @@ export function Footer() {
               <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
               <span className="text-slate-700 dark:text-slate-200">{COMPANY.address}</span>
             </li>
-            <li className="flex items-center gap-2.5">
-              <Phone className="size-4 shrink-0 text-primary" />
-              <a href={`tel:${COMPANY.phoneRaw}`} className="text-slate-700 dark:text-slate-200 hover:text-primary dark:hover:text-white transition-colors">
-                {COMPANY.phone}
-              </a>
-            </li>
+            {COMPANY.phone && (
+              <li className="flex items-center gap-2.5">
+                <Phone className="size-4 shrink-0 text-primary" />
+                <a href={`tel:${COMPANY.phoneRaw}`} className="text-slate-700 dark:text-slate-200 hover:text-primary dark:hover:text-white transition-colors">
+                  {COMPANY.phone}
+                </a>
+              </li>
+            )}
             <li className="flex items-center gap-2.5">
               <Mail className="size-4 shrink-0 text-primary" />
               <a href={`mailto:${COMPANY.email}`} className="text-slate-700 dark:text-slate-200 hover:text-primary dark:hover:text-white transition-colors">

@@ -1083,7 +1083,7 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                       <X className="size-4" />
                     </button>
                   ) : (
-                    <div className={`absolute top-1/2 -translate-y-1/2 hidden md:flex items-center pointer-events-none ${
+                    <div className={`absolute top-1/2 -translate-y-1/2 hidden lg:flex items-center pointer-events-none ${
                       isAr ? "left-2.5 sm:left-3" : "right-2.5 sm:right-3"
                     }`}>
                       <kbd className="px-2 py-0.5 text-[11px] font-mono font-medium text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800/90 rounded-md border border-slate-200 dark:border-slate-700/60 shadow-2xs">
@@ -1096,10 +1096,11 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                 <button
                   type="button"
                   onClick={() => handleSearch(searchQuery)}
-                  className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm sm:text-base shadow-lg shadow-blue-500/25 transition-all duration-200 active:scale-95 shrink-0 cursor-pointer ring-1 ring-inset ring-white/20"
+                  aria-label={t("search_btn")}
+                  className="inline-flex items-center justify-center gap-2 px-4 sm:px-6 lg:px-8 py-3 sm:py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm sm:text-base shadow-lg shadow-blue-500/25 transition-all duration-200 active:scale-95 shrink-0 cursor-pointer ring-1 ring-inset ring-white/20"
                 >
                   <Sparkles className="size-4 text-blue-200" />
-                  <span>{t("search_btn")}</span>
+                  <span className="hidden sm:inline">{t("search_btn")}</span>
                 </button>
               </div>
             </div>
@@ -1427,17 +1428,15 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
               <div className="space-y-12 sm:space-y-16 animate-in fade-in duration-500">
                 {/* SECTION 2: HIGH-VOLUME & TRENDING AREA CODES GRID */}
                 <div>
-                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-6">
-                    <div>
-                      <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary mb-1">
-                        <Sparkles className="size-3.5" />
-                        <span>{isAr ? "المراكز الهاتفية الأكثر نشاطاً" : "High-Volume Telephony Hubs"}</span>
-                      </div>
-                      <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground tracking-tight">
-                        {isAr ? "ساعات حية مباشرة للمناطق الكبرى" : "Explore Live Telecommunications Clocks"}
-                      </h2>
+                  <div className="flex flex-col gap-2 mb-6">
+                    <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary mb-1">
+                      <Sparkles className="size-3.5" />
+                      <span>{isAr ? "المراكز الهاتفية الأكثر نشاطاً" : "High-Volume Telephony Hubs"}</span>
                     </div>
-                    <p className="text-xs text-slate-600 dark:text-slate-300 max-w-sm leading-relaxed font-normal">
+                    <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground tracking-tight">
+                      {isAr ? "ساعات حية مباشرة للمناطق الكبرى" : "Explore Live Telecommunications Clocks"}
+                    </h2>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 max-w-lg leading-relaxed font-normal">
                       {isAr
                         ? "ساعات حية دقيقة ومطابقة قانونية لحظية لنوافذ الاتصال لكل ولاية ومقاطعة."
                         : "Live local clocks, dominant carriers, and TCPA legality computed in real time."}
@@ -1454,7 +1453,7 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                       return (
                         <div
                           key={p.code}
-                          className="group relative rounded-3xl bg-white dark:bg-card/90 border border-slate-200/90 dark:border-white/10 hover:border-primary/50 dark:hover:border-primary/50 p-6 shadow-sm dark:shadow-none hover:shadow-md transition-all flex flex-col justify-between space-y-5"
+                          className="group relative rounded-3xl bg-white dark:bg-card/90 border border-slate-200/90 dark:border-white/10 hover:border-primary/50 dark:hover:border-primary/50 p-6 shadow-sm dark:shadow-none hover:shadow-md hover:scale-[1.02] transition-all duration-200 flex flex-col justify-between space-y-5"
                         >
                           <div className="space-y-3">
                             <div className="flex items-start justify-between gap-2">
@@ -1575,7 +1574,7 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                 <div className="border-t border-slate-200/80 dark:border-white/10" />
 
                 {/* SECTION 5: VISUAL OPERATIONS RADAR BANNER */}
-                <div className="relative overflow-hidden rounded-3xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/95 p-6 sm:p-8 lg:p-10 shadow-xl shadow-slate-200/40 dark:shadow-2xl">
+                <div className="relative overflow-hidden rounded-3xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/95 p-6 sm:p-8 lg:p-10 shadow-xl shadow-slate-200/40 dark:shadow-2xl dark:shadow-black/40">
                   {/* Subtle Ambient Depth Glows */}
                   <div className="pointer-events-none absolute -right-24 -top-24 size-80 bg-primary/10 blur-[90px] rounded-full" />
                   <div className="pointer-events-none absolute -left-24 -bottom-24 size-80 bg-indigo-500/10 blur-[90px] rounded-full" />

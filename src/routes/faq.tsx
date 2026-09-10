@@ -7,8 +7,20 @@ import { useI18n } from "@/lib/i18n";
 import { fetchFaqsFromDb, type FaqRecord } from "@/lib/collections";
 import { isFirebaseConfigured } from "@/lib/firebase";
 
+import { COMPANY } from "@/data/company";
+
 export const Route = createFileRoute("/faq")({
   component: FaqPage,
+  head: () => ({
+    meta: [
+      { title: `FAQ - Frequently Asked Questions | ${COMPANY.name}` },
+      { 
+        name: "description", 
+        content: "Get authoritative answers to frequently asked questions about North American Area Codes, TCPA compliance, and phone intelligence from ENTEC." 
+      },
+      { name: "keywords", content: "area code FAQ, TCPA compliance questions, NANP questions, phone intelligence help" }
+    ]
+  }),
 });
 
 const DEFAULT_FAQS: FaqRecord[] = [
@@ -118,6 +130,25 @@ function FaqPage() {
       </main>
 
       <Footer />
+
+      {/* Structured Data for FAQPage */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": displayFaqs.map((faq) => ({
+              "@type": "Question",
+              "name": faq.question,
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": faq.answer
+              }
+            }))
+          }).replace(/</g, '\\u003c')
+        }}
+      />
     </div>
   );
 }

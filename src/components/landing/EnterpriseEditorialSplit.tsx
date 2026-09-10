@@ -129,7 +129,7 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
       {/* =========================================================================
           EDITORIAL SPLIT A: TCPA COMPLIANCE & CALLING WINDOW ENGINE
       ========================================================================= */}
-      <div className="relative rounded-3xl border border-slate-200/90 dark:border-border/80 bg-gradient-to-br from-white via-slate-50/80 to-blue-50/20 dark:from-card dark:via-card/90 dark:to-card/50 p-6 sm:p-8 lg:p-10 shadow-xl shadow-slate-200/50 dark:shadow-lg overflow-hidden">
+      <div className="relative rounded-3xl border border-slate-200/90 dark:border-border/80 bg-gradient-to-br from-white via-slate-50/80 to-blue-50/20 dark:from-card dark:via-card/90 dark:to-card/50 p-6 sm:p-8 lg:p-10 shadow-xl shadow-slate-200/50 dark:shadow-lg dark:shadow-black/40 overflow-hidden">
         <div className="pointer-events-none absolute -top-32 -right-32 size-96 bg-emerald-500/[0.07] blur-[100px] rounded-full" />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
@@ -305,7 +305,7 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
       {/* =========================================================================
           EDITORIAL SPLIT B: OFFSHORE TOLL FRAUD & WANGIRI INTERCEPTOR
       ========================================================================= */}
-      <div className="relative rounded-3xl border border-slate-200/90 dark:border-white/10 bg-gradient-to-br from-white via-slate-50/80 to-amber-50/20 dark:from-card dark:via-card/90 dark:to-card/50 p-6 sm:p-8 lg:p-10 shadow-xl shadow-slate-200/50 dark:shadow-2xl overflow-hidden">
+      <div className="relative rounded-3xl border border-slate-200/90 dark:border-white/10 bg-gradient-to-br from-white via-slate-50/80 to-amber-50/20 dark:from-card dark:via-card/90 dark:to-card/50 p-6 sm:p-8 lg:p-10 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/40 overflow-hidden">
         <div className="pointer-events-none absolute -bottom-32 -left-32 size-96 bg-amber-500/[0.07] blur-[100px] rounded-full" />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">

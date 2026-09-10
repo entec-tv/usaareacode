@@ -101,7 +101,7 @@ export const InvertedNumbersSection: React.FC<InvertedNumbersSectionProps> = ({
       {/* 4 Big Editorial Stat Blocks */}
       <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-10">
         {/* Stat 1: 460+ NPAs */}
-        <div className="relative rounded-2xl bg-white/[0.06] dark:bg-white/[0.04] hover:bg-white/[0.10] dark:hover:bg-white/[0.08] border border-white/10 hover:border-blue-500/40 p-5 sm:p-6 transition-all space-y-3 group">
+        <div className="relative rounded-2xl bg-white/[0.06] dark:bg-white/[0.04] hover:bg-white/[0.10] dark:hover:bg-white/[0.08] border border-white/10 hover:border-blue-500/40 p-5 sm:p-6 transition-all duration-200 space-y-3 group hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/10">
           <div className="flex items-center justify-between text-slate-300 text-xs font-mono">
             <span>REGISTRY COVERAGE</span>
             <span className="text-blue-400 flex items-center gap-1 font-bold">
@@ -127,7 +127,7 @@ export const InvertedNumbersSection: React.FC<InvertedNumbersSectionProps> = ({
         </div>
 
         {/* Stat 2: $1,500 Fine Avoidance */}
-        <div className="relative rounded-2xl bg-white/[0.06] dark:bg-white/[0.04] hover:bg-white/[0.10] dark:hover:bg-white/[0.08] border border-white/10 hover:border-emerald-500/40 p-5 sm:p-6 transition-all space-y-3 group">
+        <div className="relative rounded-2xl bg-white/[0.06] dark:bg-white/[0.04] hover:bg-white/[0.10] dark:hover:bg-white/[0.08] border border-white/10 hover:border-emerald-500/40 p-5 sm:p-6 transition-all duration-200 space-y-3 group hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-500/10">
           <div className="flex items-center justify-between text-slate-300 text-xs font-mono">
             <span>TCPA SAFEGUARD</span>
             <span className="text-emerald-400 flex items-center gap-1 font-bold">
@@ -152,7 +152,7 @@ export const InvertedNumbersSection: React.FC<InvertedNumbersSectionProps> = ({
         </div>
 
         {/* Stat 3: 9 Timezones Live */}
-        <div className="relative rounded-2xl bg-white/[0.06] dark:bg-white/[0.04] hover:bg-white/[0.10] dark:hover:bg-white/[0.08] border border-white/10 hover:border-indigo-500/40 p-5 sm:p-6 transition-all space-y-3 group">
+        <div className="relative rounded-2xl bg-white/[0.06] dark:bg-white/[0.04] hover:bg-white/[0.10] dark:hover:bg-white/[0.08] border border-white/10 hover:border-indigo-500/40 p-5 sm:p-6 transition-all duration-200 space-y-3 group hover:scale-[1.02] hover:shadow-lg hover:shadow-indigo-500/10">
           <div className="flex items-center justify-between text-slate-300 text-xs font-mono">
             <span>TIMEZONE ENGINE</span>
             <span className="text-indigo-400 flex items-center gap-1 font-bold">
@@ -170,14 +170,14 @@ export const InvertedNumbersSection: React.FC<InvertedNumbersSectionProps> = ({
             </div>
           </div>
 
-          <div className="pt-2 border-t border-white/[0.10] flex items-center justify-between text-[11px] font-mono text-slate-300">
-            <span>UTC-2.5 to UTC-10</span>
-            <span className="text-indigo-300">Auto DST Handled</span>
+          <div className="pt-2 border-t border-white/[0.10] flex items-center justify-between text-[11px] font-mono text-slate-300 gap-2">
+            <span className="whitespace-nowrap shrink-0">UTC-2.5 to UTC-10</span>
+            <span className="text-indigo-300 whitespace-nowrap">Auto DST Handled</span>
           </div>
         </div>
 
         {/* Stat 4: < 1ms In-Memory Resolution */}
-        <div className="relative rounded-2xl bg-white/[0.06] dark:bg-white/[0.04] hover:bg-white/[0.10] dark:hover:bg-white/[0.08] border border-white/10 hover:border-amber-500/40 p-5 sm:p-6 transition-all space-y-3 group">
+        <div className="relative rounded-2xl bg-white/[0.06] dark:bg-white/[0.04] hover:bg-white/[0.10] dark:hover:bg-white/[0.08] border border-white/10 hover:border-amber-500/40 p-5 sm:p-6 transition-all duration-200 space-y-3 group hover:scale-[1.02] hover:shadow-lg hover:shadow-amber-500/10">
           <div className="flex items-center justify-between text-slate-300 text-xs font-mono">
             <span>QUERY LATENCY</span>
             <span className="text-amber-400 flex items-center gap-1 font-bold">

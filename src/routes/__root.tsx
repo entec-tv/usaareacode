@@ -71,65 +71,70 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=5" },
-      { title: `${COMPANY.name} | ${COMPANY.tagline}` },
-      { name: "description", content: COMPANY.description },
-      {
-        name: "keywords",
-        content:
-          "area codes, phone intelligence, NANPA lookup, NPA NXX, TCPA calling window, timezone converter, US area code, Canada area code, telecom carrier lookup, bulk phone cleanser, robocall scam alert",
-      },
-      { name: "author", content: `${COMPANY.name} (${COMPANY.legalName})` },
-      { name: "robots", content: "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" },
-      { name: "theme-color", content: "#0f172a" },
-      { name: "color-scheme", content: "light dark" },
-      { name: "application-name", content: COMPANY.name },
-      { name: "apple-mobile-web-app-title", content: COMPANY.name },
-      { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      // Google AdSense Account Verification
-      { name: "google-adsense-account", content: "ca-pub-7997346618896033" },
+  head: (ctx: any) => {
+    const path = ctx.location?.pathname || "";
+    const canonicalPath = path === "/" ? "" : path;
+    
+    return {
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=5" },
+        { title: `${COMPANY.name} | ${COMPANY.tagline}` },
+        { name: "description", content: COMPANY.description },
+        {
+          name: "keywords",
+          content:
+            "area codes, phone intelligence, NANPA lookup, NPA NXX, TCPA calling window, timezone converter, US area code, Canada area code, telecom carrier lookup, bulk phone cleanser, robocall scam alert",
+        },
+        { name: "author", content: `${COMPANY.name} (${COMPANY.legalName})` },
+        { name: "robots", content: "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" },
+        { name: "theme-color", content: "#0f172a" },
+        { name: "color-scheme", content: "light dark" },
+        { name: "application-name", content: COMPANY.name },
+        { name: "apple-mobile-web-app-title", content: COMPANY.name },
+        { name: "apple-mobile-web-app-capable", content: "yes" },
+        { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+        // Google AdSense Account Verification
+        { name: "google-adsense-account", content: "ca-pub-7997346618896033" },
 
-      // Open Graph (Facebook, LinkedIn, Discord, WhatsApp)
-      { property: "og:site_name", content: COMPANY.brand },
-      { property: "og:title", content: `${COMPANY.name} | ${COMPANY.tagline}` },
-      { property: "og:description", content: COMPANY.description },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: COMPANY.url },
-      { property: "og:image", content: `${COMPANY.url}/entec-logo.jpg` },
-      { property: "og:image:width", content: "1024" },
-      { property: "og:image:height", content: "1024" },
-      { property: "og:image:alt", content: "ENTEC Phone Intelligence Logo" },
-      { property: "og:locale", content: "en_US" },
-      { property: "og:locale:alternate", content: "ar_EG" },
+        // Open Graph (Facebook, LinkedIn, Discord, WhatsApp)
+        { property: "og:site_name", content: COMPANY.brand },
+        { property: "og:title", content: `${COMPANY.name} | ${COMPANY.tagline}` },
+        { property: "og:description", content: COMPANY.description },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: `${COMPANY.url}${canonicalPath}` },
+        { property: "og:image", content: `${COMPANY.url}/entec-logo.jpg` },
+        { property: "og:image:width", content: "1024" },
+        { property: "og:image:height", content: "1024" },
+        { property: "og:image:alt", content: "ENTEC Phone Intelligence Logo" },
+        { property: "og:locale", content: "en_US" },
+        { property: "og:locale:alternate", content: "ar_EG" },
 
-      // Twitter Cards (X)
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@entec" },
-      { name: "twitter:creator", content: "@entec" },
-      { name: "twitter:title", content: `${COMPANY.name} | ${COMPANY.brand}` },
-      { name: "twitter:description", content: COMPANY.description },
-      { name: "twitter:image", content: `${COMPANY.url}/entec-logo.jpg` },
-      { name: "twitter:image:alt", content: "ENTEC Phone Intelligence Logo" },
-    ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
-      // Primary Favicon - Generated ENTEC Logo
-      { rel: "icon", href: "/favicon.ico", sizes: "any" },
-      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
-      { rel: "icon", type: "image/png", sizes: "48x48", href: "/favicon.png" },
-      { rel: "icon", type: "image/jpeg", href: "/entec-logo.jpg" },
-      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
-      { rel: "manifest", href: "/site.webmanifest" },
-      { rel: "canonical", href: COMPANY.url },
-    ],
-  }),
+        // Twitter Cards (X)
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:site", content: "@entec" },
+        { name: "twitter:creator", content: "@entec" },
+        { name: "twitter:title", content: `${COMPANY.name} | ${COMPANY.brand}` },
+        { name: "twitter:description", content: COMPANY.description },
+        { name: "twitter:image", content: `${COMPANY.url}/entec-logo.jpg` },
+        { name: "twitter:image:alt", content: "ENTEC Phone Intelligence Logo" },
+      ],
+      links: [
+        {
+          rel: "stylesheet",
+          href: appCss,
+        },
+        // Primary Favicon - Generated ENTEC Logo
+        { rel: "icon", href: "/favicon.ico", sizes: "any" },
+        { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
+        { rel: "icon", type: "image/png", sizes: "48x48", href: "/favicon.png" },
+        { rel: "icon", type: "image/jpeg", href: "/entec-logo.jpg" },
+        { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
+        { rel: "manifest", href: "/site.webmanifest" },
+        { rel: "canonical", href: `${COMPANY.url}${canonicalPath}` },
+      ],
+    };
+  },
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
@@ -161,7 +166,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(COMPANY.jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(COMPANY.jsonLd).replace(/</g, '\\u003c') }}
         />
         {/* Google AdSense Script */}
         <script
