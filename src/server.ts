@@ -49,7 +49,20 @@ export default {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      const normalized = await normalizeCatastrophicSsrResponse(response);
+      
+      // Cache valid HTML responses on the CDN to fix high TTFB/FCP
+      if (normalized.status === 200 && normalized.headers.get("content-type")?.includes("text/html")) {
+        const headers = new Headers(normalized.headers);
+        headers.set("Cache-Control", "public, max-age=300, s-maxage=86400, stale-while-revalidate=3600");
+        return new Response(normalized.body, {
+          status: normalized.status,
+          statusText: normalized.statusText,
+          headers,
+        });
+      }
+
+      return normalized;
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {
