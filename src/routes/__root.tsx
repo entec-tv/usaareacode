@@ -182,24 +182,40 @@ function RootShell({ children }: { children: ReactNode }) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(COMPANY.jsonLd).replace(/</g, '\\u003c') }}
         />
-        {/* Google AdSense Script */}
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7997346618896033"
-          crossOrigin="anonymous"
-        />
-        {/* Google Analytics / Google Tag Manager (gtag.js) */}
-        <script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=G-XDZD19YSQS"
-        />
+        {/* Deferred Third-Party Scripts (AdSense & Analytics) */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-XDZD19YSQS');
+              (function() {
+                let scriptsInjected = false;
+                function injectScripts() {
+                  if (scriptsInjected) return;
+                  scriptsInjected = true;
+                  
+                  // AdSense
+                  const adScript = document.createElement('script');
+                  adScript.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7997346618896033";
+                  adScript.async = true;
+                  adScript.crossOrigin = "anonymous";
+                  document.head.appendChild(adScript);
+                  
+                  // GTM
+                  const gtagScript = document.createElement('script');
+                  gtagScript.src = "https://www.googletagmanager.com/gtag/js?id=G-XDZD19YSQS";
+                  gtagScript.async = true;
+                  document.head.appendChild(gtagScript);
+                  
+                  window.dataLayer = window.dataLayer || [];
+                  window.gtag = function(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', 'G-XDZD19YSQS');
+                }
+
+                setTimeout(injectScripts, 3500);
+                ['scroll', 'mousemove', 'touchstart'].forEach(function(e) {
+                  window.addEventListener(e, injectScripts, { once: true, passive: true });
+                });
+              })();
             `,
           }}
         />
