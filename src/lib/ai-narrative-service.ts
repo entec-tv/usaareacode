@@ -231,9 +231,9 @@ function synthesizeAuthoritativeNarrative(ctx: {
   ].includes(ctx.code);
 
   const rotaryClicks =
-    parseInt(ctx.code[0]) +
-    (ctx.code[1] === "0" ? 10 : parseInt(ctx.code[1])) +
-    (ctx.code[2] === "0" ? 10 : parseInt(ctx.code[2]));
+    parseInt(ctx.code[0] || "0") +
+    (ctx.code[1] === "0" ? 10 : parseInt(ctx.code[1] || "0")) +
+    (ctx.code[2] === "0" ? 10 : parseInt(ctx.code[2] || "0"));
 
   const summary = `Area Code ${ctx.code} serves the prominent metropolitan footprint of ${ctx.city} (${ctx.region}) within ${ctx.state}. As a vital artery of the North American Numbering Plan (NANP), it anchors regional enterprise telecommunications, emergency routing, and high-density subscriber switching across ${ctx.timezone}.`;
 

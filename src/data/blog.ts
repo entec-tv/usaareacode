@@ -20,7 +20,7 @@ export const POSTS: Post[] = [
       "Overlay relief keeps existing numbers intact but forces mandatory 10-digit dialing. Here is how NANPA decides between a split and an overlay.",
     date: "2026-08-18",
     readMins: 7,
-    author: "Marcus Vance",
+    author: "ENTEC Research Team",
     body: [
       "When an area code approaches exhaust, the North American Numbering Plan Administrator (NANPA) files a relief plan with the state regulator. There are two classic remedies: a geographic split, which carves the region in half and reassigns half the subscribers to a new NPA, and an overlay, which layers a second NPA on top of the same geography.",
       "Splits were dominant through the 1990s because they preserved 7-digit dialing. They also forced hundreds of thousands of businesses to reprint stationery, rebrand vehicles and update directory listings. Regulators increasingly judged that cost unacceptable.",
@@ -37,7 +37,7 @@ export const POSTS: Post[] = [
       "473, 876, 284 and friends look domestic but sit outside US rate plans. Understanding premium revenue sharing is the only durable defense.",
     date: "2026-07-30",
     readMins: 6,
-    author: "Dr. Elena Rostova",
+    author: "ENTEC Research Team",
     body: [
       "Wangiri — Japanese for 'one ring and cut' — relies on a structural quirk of the North American Numbering Plan: several Caribbean nations share the +1 country code while charging international premium rates.",
       "A caller sees a missed call from 473 (Grenada) or 876 (Jamaica) and assumes it is a domestic number. Returning the call routes internationally, and the fraudster's terminating carrier shares premium revenue with them for every minute you stay on hold.",
@@ -53,7 +53,7 @@ export const POSTS: Post[] = [
       "The window is measured at the called party's local time — not yours, and not the area code's billing address. Here is how to model it.",
     date: "2026-07-12",
     readMins: 8,
-    author: "Marcus Vance",
+    author: "ENTEC Research Team",
     body: [
       "The Telephone Consumer Protection Act restricts telemarketing calls to between 8:00 AM and 9:00 PM at the called party's location. Many state statutes are stricter, and some prohibit Sunday calling entirely.",
       "Determining 'the called party's location' with a mobile number is genuinely hard. Number portability means an NPA-NXX assignment is evidence of original assignment geography, not current residence.",
@@ -69,7 +69,7 @@ export const POSTS: Post[] = [
       "The first six digits carry the routing intelligence. Central office code blocks are what make city-level attribution possible at all.",
     date: "2026-06-24",
     readMins: 9,
-    author: "Dr. Elena Rostova",
+    author: "ENTEC Research Team",
     body: [
       "A 10-digit NANP number decomposes into NPA (area code), NXX (central office code) and the 4-digit line number. Routing decisions historically happened at the NPA-NXX level, which is why public datasets attribute numbers to rate centers rather than to street addresses.",
       "Rate centers are geographic billing polygons, not cities. A rate center named 'Malvern' may cover several municipalities, which is why our city field lists representative localities rather than a single definitive city.",
@@ -85,7 +85,7 @@ export const POSTS: Post[] = [
       "Extraction, normalization, validation, deduplication, enrichment. Skip any pass and your connect rate quietly degrades.",
     date: "2026-06-02",
     readMins: 10,
-    author: "Marcus Vance",
+    author: "ENTEC Research Team",
     body: [
       "Pass one is extraction: pull candidate digit runs out of free text with a permissive regex, because real CRM exports hide numbers inside comments, signatures and pasted email threads.",
       "Pass two is normalization to E.164. Strip punctuation, drop a leading 1 on 10-digit strings, and reject anything that cannot resolve to a valid NANP pattern of [2-9]XX[2-9]XXXXXX.",
@@ -102,7 +102,7 @@ export const POSTS: Post[] = [
       "The CRTC, not the FCC, governs Canadian numbering. CASL consent rules also differ sharply from US TCPA practice.",
     date: "2026-05-19",
     readMins: 6,
-    author: "Dr. Elena Rostova",
+    author: "ENTEC Research Team",
     body: [
       "Canada shares +1 with the United States but is regulated by the CRTC, with the Canadian Numbering Administrator handling NPA relief. Ontario alone now carries eight overlaid NPAs across the Greater Toronto Area.",
       "Consent rules diverge: Canada's Anti-Spam Legislation requires express or implied consent with documented provenance, and penalties scale to the organization rather than per-call.",

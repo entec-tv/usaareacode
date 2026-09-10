@@ -80,75 +80,44 @@ function AboutPage() {
           </div>
         </div>
 
-        {/* Corporate Headquarters & Contact */}
-        <div className="glass-panel p-8 rounded-3xl border border-primary/30 mb-16">
-          <h2 className="font-display text-2xl font-bold text-foreground mb-6">
-            {isAr ? "المقر الرئيسي ومعلومات التواصل" : "Corporate Headquarters & Operations"}
+        {/* Operations & Support Contact */}
+        <div className="glass-panel p-8 rounded-3xl border border-primary/30">
+          <h2 className="font-display text-2xl font-bold text-foreground mb-4">
+            {isAr ? "التواصل والعمليات التشغيلية" : "Platform Operations & Direct Support"}
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-sm">
-            <div className="flex items-start gap-3">
-              <MapPin className="size-5 text-primary shrink-0 mt-0.5" />
-              <div>
-                <span className="font-semibold text-foreground block mb-1">
-                  {isAr ? "العنوان الرئيسي" : "Headquarters"}
-                </span>
-                <span className="text-muted-foreground text-xs leading-relaxed">
-                  {COMPANY.address}
-                </span>
-              </div>
-            </div>
+          <p className="text-xs sm:text-sm text-muted-foreground mb-6 max-w-2xl leading-relaxed">
+            {isAr
+              ? "منصة ENTEC تعمل بنظام رقمي متكامل لمتابعة وتحديث بيانات الترقيم في أمريكا الشمالية. للمساعدة الفنية أو الاستفسارات المؤسسية، يمكنك التواصل معنا مباشرة."
+              : "ENTEC operates a continuous telecom intelligence platform serving users and organizations across the US and Canada. For technical assistance or corporate inquiries, reach out through our official channels."}
+          </p>
 
-            <div className="flex items-start gap-3">
-              <Phone className="size-5 text-primary shrink-0 mt-0.5" />
-              <div>
-                <span className="font-semibold text-foreground block mb-1">
-                  {isAr ? "هاتف العمليات المباشر" : "Direct Operations Desk"}
-                </span>
-                <a
-                  href={`tel:${COMPANY.phoneRaw}`}
-                  className="text-muted-foreground hover:text-primary text-xs font-mono"
-                >
-                  {COMPANY.phone}
-                </a>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
+            <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-card/60 border border-border/80">
               <Mail className="size-5 text-primary shrink-0 mt-0.5" />
               <div>
                 <span className="font-semibold text-foreground block mb-1">
-                  {isAr ? "البريد الإلكتروني" : "Corporate Email"}
+                  {isAr ? "البريد الإلكتروني المعتمد" : "Official Support Email"}
                 </span>
                 <a
                   href={`mailto:${COMPANY.email}`}
-                  className="text-muted-foreground hover:text-primary text-xs font-mono"
+                  className="text-primary hover:underline text-xs font-mono font-medium"
                 >
                   {COMPANY.email}
                 </a>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Leadership Team */}
-        <div>
-          <h2 className="font-display text-2xl font-bold text-foreground mb-6 text-center">
-            {isAr ? "القيادة التنفيذية" : "Executive Leadership"}
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {COMPANY.leadership.map((leader) => (
-              <div
-                key={leader.name}
-                className="glass rounded-2xl p-6 text-center border border-border/70"
-              >
-                <div className="size-14 rounded-full bg-primary/15 text-primary font-display text-lg font-bold grid place-items-center mx-auto mb-4">
-                  {leader.name.split(" ").map((n) => n[0]).join("")}
-                </div>
-                <h4 className="font-semibold text-foreground text-sm">{leader.name}</h4>
-                <p className="text-xs text-primary font-medium mt-0.5">{leader.role}</p>
-                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{leader.bio}</p>
+            <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-card/60 border border-border/80">
+              <Globe className="size-5 text-primary shrink-0 mt-0.5" />
+              <div>
+                <span className="font-semibold text-foreground block mb-1">
+                  {isAr ? "بوابة التواصل المباشرة" : "Direct Inquiry Desk"}
+                </span>
+                <span className="text-muted-foreground text-xs leading-relaxed block">
+                  {isAr ? "متاحة على مدار الأسبوع لاستقبال الرسائل" : "24/7 online message intake and prompt resolution"}
+                </span>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </main>

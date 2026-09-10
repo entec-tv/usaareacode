@@ -38,7 +38,7 @@ Build a modern, state-of-the-art, and ultra-responsive Telecommunications Portal
 
 ### 3. Full Multi-Page Structure & E-E-A-T Content
 - Home (index.html): Main SPA hosting all tools, live hero stats, and E-E-A-T expert byline.
-- About Us (about.html): Transparent mission, executive team profiles (Marcus Vance, Dr. Elena Rostova), regulatory source citations (NANPA, FCC, CRTC, FTC), and corporate governance card.
+- About Us (about.html): Transparent mission, operational overview, regulatory source citations (NANPA, FCC, CRTC, FTC), and corporate governance card.
 - Data Methodology (methodology.html): In-depth architectural explanation of the automated data pipeline, NXX Central Office mapping, atomic clock synchronization, and anti-scam logic.
 - Cited FAQ (faq.html): 32+ accordion FAQ items with structured schema covering telecom definitions, overlays, and calling rules.
 Build a modern, state-of-the-art, and ultra-responsive Telecommunications Portal & Utility Web Application named "USA Area Code Lookup & Phone Intelligence Hub", operated by "ENTEC".
@@ -79,7 +79,7 @@ Build a modern, state-of-the-art, and ultra-responsive Telecommunications Portal
 
 ### 3. Full Multi-Page Structure & E-E-A-T Content
 - Home (index.html): Main SPA hosting all tools, live hero stats, and E-E-A-T expert byline.
-- About Us (about.html): Transparent mission, executive team profiles (Marcus Vance, Dr. Elena Rostova), regulatory source citations (NANPA, FCC, CRTC, FTC), and corporate governance card.
+- About Us (about.html): Transparent mission, operational overview, regulatory source citations (NANPA, FCC, CRTC, FTC), and corporate governance card.
 - Data Methodology (methodology.html): In-depth architectural explanation of the automated data pipeline, NXX Central Office mapping, atomic clock synchronization, and anti-scam logic.
 - Cited FAQ (faq.html): 32+ accordion FAQ items with structured schema covering telecom definitions, overlays, and calling rules.
 - Blog & Dynamic Reader (blog.html & article.html): Filterable blog grid with category tags and dedicated reader with related-post recommendations.

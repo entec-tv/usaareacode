@@ -66,9 +66,9 @@ export type SiteSettings = {
 export const emptySettings: SiteSettings = {
   companyName: "ENTEC",
   supportEmail: "info@entec.store",
-  phone: "+1 (223) 203-0312",
-  businessHours: "Monday - Friday: 9:00 AM - 5:00 PM EST",
-  address: "2 Great Valley Pkwy 2nd floor, Malvern, PA 19355, USA",
+  phone: "",
+  businessHours: "Monday - Friday: 8:00 AM - 6:00 PM EST",
+  address: "North American Operations (US & Canada)",
   twitter: "https://twitter.com/entec",
   linkedin: "https://linkedin.com/company/entec",
 };

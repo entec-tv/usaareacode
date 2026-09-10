@@ -1,6 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
-@source "../src";
 @import "tw-animate-css";
+
+@source "../src";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -63,31 +65,31 @@
   --radius: 0.85rem;
 
   /* 3-Tier Elevation System (Light Mode) */
-  --elevation-0: oklch(0.955 0.012 245);
-  --elevation-1: rgba(248, 250, 253, 0.88);
-  --elevation-2: oklch(0.925 0.018 250);
+  --elevation-0: #ffffff;
+  --elevation-1: oklch(0.98 0.002 260);
+  --elevation-2: oklch(0.96 0.005 260);
 
   /* Apple Light Glass Ethereal Canvas - Refined Eye Comfort Palette */
-  --background: oklch(0.955 0.012 245);
-  --foreground: oklch(0.18 0.03 260);
-  --card: rgba(248, 250, 253, 0.88);
-  --card-foreground: oklch(0.18 0.03 260);
-  --popover: rgba(246, 249, 252, 0.96);
-  --popover-foreground: oklch(0.18 0.03 260);
+  --background: #ffffff;
+  --foreground: oklch(0.15 0.015 260);
+  --card: #ffffff;
+  --card-foreground: oklch(0.15 0.015 260);
+  --popover: #ffffff;
+  --popover-foreground: oklch(0.15 0.015 260);
 
-  /* Apple System Blue */
-  --primary: #0071e3;
+  /* Premium Modern Blue */
+  --primary: oklch(0.55 0.14 260);
   --primary-foreground: #ffffff;
 
-  /* Apple Slate Secondary */
-  --secondary: oklch(0.925 0.018 250);
-  --secondary-foreground: oklch(0.22 0.03 260);
+  /* Refined Slate Secondary */
+  --secondary: oklch(0.96 0.005 260);
+  --secondary-foreground: oklch(0.20 0.015 260);
 
-  --muted: oklch(0.935 0.014 248);
-  --muted-foreground: oklch(0.44 0.03 260);
+  --muted: oklch(0.96 0.005 260);
+  --muted-foreground: oklch(0.45 0.01 260);
 
-  --accent: oklch(0.915 0.025 245);
-  --accent-foreground: oklch(0.18 0.03 260);
+  --accent: oklch(0.94 0.008 260);
+  --accent-foreground: oklch(0.15 0.015 260);
 
   --destructive: oklch(0.6 0.22 25);
   --destructive-foreground: #ffffff;
@@ -98,10 +100,10 @@
   --warning: oklch(0.75 0.16 75);
   --warning-foreground: #ffffff;
 
-  --border: rgba(15, 40, 90, 0.09);
-  --border-subtle: rgba(15, 40, 90, 0.06);
-  --input: rgba(15, 40, 90, 0.06);
-  --ring: rgba(0, 113, 227, 0.4);
+  --border: oklch(0.92 0.005 260);
+  --border-subtle: oklch(0.95 0.005 260);
+  --input: oklch(0.92 0.005 260);
+  --ring: oklch(0.55 0.14 260);
 
   --chart-1: #0071e3;
   --chart-2: oklch(0.6 0.18 274);
@@ -140,30 +142,30 @@
 
 .dark {
   /* 3-Tier Elevation System (Dark Mode) */
-  --elevation-0: oklch(0.18 0.035 264.7); /* Deep canvas background */
-  --elevation-1: oklch(0.24 0.04 262);    /* Card surface - step lighter */
-  --elevation-2: oklch(0.30 0.045 260);   /* Raised elements / inner containers */
+  --elevation-0: oklch(0.13 0.015 260); /* Elegant deep slate background */
+  --elevation-1: oklch(0.17 0.015 260); /* Card surface */
+  --elevation-2: oklch(0.20 0.015 260); /* Raised elements / inner containers */
 
-  --background: oklch(0.18 0.035 264.7);
-  --foreground: oklch(0.97 0.008 247.9);
-  --card: oklch(0.24 0.04 262);
-  --card-foreground: oklch(0.97 0.008 247.9);
-  --popover: oklch(0.22 0.04 262);
-  --popover-foreground: oklch(0.97 0.008 247.9);
+  --background: oklch(0.13 0.015 260);
+  --foreground: oklch(0.92 0.005 260);
+  --card: oklch(0.17 0.015 260);
+  --card-foreground: oklch(0.92 0.005 260);
+  --popover: oklch(0.17 0.015 260);
+  --popover-foreground: oklch(0.92 0.005 260);
 
-  /* Unified Neon/Apple Cyan-Blue Primary */
-  --primary: oklch(0.76 0.13 220);
-  --primary-foreground: oklch(0.15 0.03 264.7);
+  /* Deep, vibrant but non-neon professional blue */
+  --primary: oklch(0.55 0.14 260);
+  --primary-foreground: #ffffff;
 
-  --secondary: oklch(0.30 0.045 260);
-  --secondary-foreground: oklch(0.96 0.01 250);
+  --secondary: oklch(0.22 0.015 260);
+  --secondary-foreground: oklch(0.95 0.005 260);
 
-  /* Calibrated for WCAG AA (>= 4.5:1 on dark surfaces) */
-  --muted: oklch(0.28 0.035 262);
-  --muted-foreground: oklch(0.80 0.02 250);
+  /* Softer muted text for eye comfort */
+  --muted: oklch(0.20 0.015 260);
+  --muted-foreground: oklch(0.70 0.01 260);
 
-  --accent: oklch(0.32 0.045 260);
-  --accent-foreground: oklch(0.96 0.01 250);
+  --accent: oklch(0.22 0.015 260);
+  --accent-foreground: oklch(0.95 0.005 260);
 
   /* Desaturated by 10-15% for dark background eye comfort (no fluorescent glare) */
   --destructive: oklch(0.60 0.18 24);
@@ -175,9 +177,9 @@
   --warning: oklch(0.76 0.13 82);
   --warning-foreground: oklch(0.15 0.03 264.7);
 
-  /* Crisp 1px semi-transparent borders for visual separation */
-  --border: rgba(255, 255, 255, 0.10);
-  --border-subtle: rgba(255, 255, 255, 0.07);
+  /* Crisp borders for visual separation */
+  --border: oklch(0.22 0.015 260);
+  --border-subtle: oklch(0.18 0.015 260);
   --input: rgba(255, 255, 255, 0.12);
   --ring: oklch(0.76 0.13 220 / 60%);
 

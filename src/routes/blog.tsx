@@ -31,7 +31,7 @@ const DEFAULT_POSTS: ArticleRecord[] = [
     excerpt:
       "With mobile subscriber growth and IoT device activations surging, state utility commissions across North America are introducing geographic overlays at record rates.",
     date: "2026-08-28",
-    author: "Marcus Vance",
+    author: "ENTEC Research Team",
     tags: ["Regulatory", "Overlays"],
     status: "published",
     content: `
@@ -47,7 +47,7 @@ const DEFAULT_POSTS: ArticleRecord[] = [
     excerpt:
       "An in-depth technical analysis of one-ring international premium rate fraud, the legal loopholes exploited in the Caribbean numbering plan, and automated carrier blocking strategies.",
     date: "2026-08-15",
-    author: "Dr. Elena Rostova",
+    author: "ENTEC Research Team",
     tags: ["Fraud", "Security"],
     status: "published",
     content: `
@@ -63,7 +63,7 @@ const DEFAULT_POSTS: ArticleRecord[] = [
     excerpt:
       "Navigating FCC 47 U.S.C. § 227 curfew regulations: how misinterpreting recipient local timezones can trigger six-figure civil penalties.",
     date: "2026-07-30",
-    author: "Marcus Vance",
+    author: "ENTEC Research Team",
     tags: ["Compliance", "TCPA"],
     status: "published",
     content: `
@@ -86,6 +86,20 @@ function BlogPage() {
   });
 
   const displayArticles = (articles && articles.length > 0) ? articles : DEFAULT_POSTS;
+
+  const getAuthor = (author?: string) => {
+    if (
+      !author ||
+      author.includes("Marcus") ||
+      author.includes("Elena") ||
+      author.includes("Rostova") ||
+      author.includes("Vance") ||
+      author.includes("Chen")
+    ) {
+      return isAr ? "فريق تحرير ENTEC" : "ENTEC Research Team";
+    }
+    return author;
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/25 selection:text-primary">
@@ -159,12 +173,10 @@ function BlogPage() {
 
                   <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-border/40 text-[11px] text-muted-foreground">
                     <div className="flex items-center gap-4">
-                      {post.author && (
-                        <span className="flex items-center gap-1">
-                          <User className="size-3 text-primary" />
-                          {post.author}
-                        </span>
-                      )}
+                      <span className="flex items-center gap-1">
+                        <User className="size-3 text-primary" />
+                        {getAuthor(post.author)}
+                      </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="size-3 text-primary" />
                         {post.date}
@@ -225,12 +237,10 @@ function BlogPage() {
               </h1>
 
               <div className="flex items-center gap-4 text-xs text-slate-400 pb-4 border-b border-white/10">
-                {selectedArticle.author && (
-                  <span className="flex items-center gap-1.5 font-medium text-slate-300">
-                    <User className="size-3.5 text-primary" />
-                    {selectedArticle.author}
-                  </span>
-                )}
+                <span className="flex items-center gap-1.5 font-medium text-slate-300">
+                  <User className="size-3.5 text-primary" />
+                  {getAuthor(selectedArticle.author)}
+                </span>
                 <span className="flex items-center gap-1.5">
                   <Calendar className="size-3.5 text-primary" />
                   {selectedArticle.date}

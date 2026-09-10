@@ -105,13 +105,6 @@ const COMPANY_LINKS = [
     icon: Sliders,
   },
   {
-    to: "/analytics",
-    key: "nav_analytics",
-    descEn: "Telecom metrics & distribution",
-    descAr: "إحصائيات فورية وتوزيع شبكات الاتصال",
-    icon: BarChart3,
-  },
-  {
     to: "/faq",
     key: "nav_faq",
     descEn: "Common questions regarding area codes",
@@ -183,16 +176,16 @@ export function Header({ activeTab, onSelectTab }: HeaderProps) {
     };
   }, []);
 
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "dark") {
-      setIsDark(true);
-      document.documentElement.classList.add("dark");
-    } else {
+    if (savedTheme === "light") {
       setIsDark(false);
       document.documentElement.classList.remove("dark");
+    } else {
+      setIsDark(true);
+      document.documentElement.classList.add("dark");
     }
   }, []);
 
@@ -328,11 +321,11 @@ export function Header({ activeTab, onSelectTab }: HeaderProps) {
             {/* Tools Dropdown Card */}
             {toolsDropdownOpen && (
               <div
-                className={`absolute top-full mt-2 w-72 rounded-2xl bg-card/95 backdrop-blur-2xl border border-primary/30 p-2 shadow-2xl shadow-black/50 z-50 animate-in fade-in slide-in-from-top-2 duration-150 ${
+                className={`absolute top-full mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-primary/30 p-2 shadow-2xl shadow-black/20 dark:shadow-black/70 z-50 animate-in fade-in slide-in-from-top-2 duration-150 ${
                   isAr ? "right-0" : "left-0"
                 }`}
               >
-                <div className="px-3 py-1.5 border-b border-border/50 mb-1 flex items-center justify-between">
+                <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 mb-1 flex items-center justify-between">
                   <span className="text-[10px] uppercase font-mono tracking-wider font-bold text-primary">
                     {isAr ? "أدوات إضافية" : "Advanced Tools"}
                   </span>
@@ -350,7 +343,7 @@ export function Header({ activeTab, onSelectTab }: HeaderProps) {
                           className={`p-1.5 rounded-lg shrink-0 mt-0.5 ${
                             isActive
                               ? "bg-primary text-primary-foreground"
-                              : "bg-background border border-border/70 text-primary"
+                              : "bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/60 text-primary"
                           }`}
                         >
                           <ToolIcon className="size-3.5" />
@@ -379,7 +372,7 @@ export function Header({ activeTab, onSelectTab }: HeaderProps) {
                           className={`w-full flex items-start gap-2.5 p-2 rounded-xl transition-all text-left rtl:text-right cursor-pointer ${
                             isActive
                               ? "bg-primary/15 text-primary font-semibold"
-                              : "hover:bg-primary/10 text-muted-foreground hover:text-foreground"
+                              : "hover:bg-slate-100 dark:hover:bg-slate-800/70 text-muted-foreground hover:text-foreground"
                           }`}
                         >
                           {content}
@@ -396,7 +389,7 @@ export function Header({ activeTab, onSelectTab }: HeaderProps) {
                         className={`flex items-start gap-2.5 p-2 rounded-xl transition-all ${
                           isActive
                             ? "bg-primary/15 text-primary font-semibold"
-                            : "hover:bg-primary/10 text-muted-foreground hover:text-foreground"
+                            : "hover:bg-slate-100 dark:hover:bg-slate-800/70 text-muted-foreground hover:text-foreground"
                         }`}
                       >
                         {content}
@@ -433,11 +426,11 @@ export function Header({ activeTab, onSelectTab }: HeaderProps) {
             {/* Dropdown Card */}
             {moreDropdownOpen && (
               <div
-                className={`absolute top-full mt-2 w-72 rounded-2xl bg-card/95 backdrop-blur-2xl border border-primary/30 p-2 shadow-2xl shadow-black/50 z-50 animate-in fade-in slide-in-from-top-2 duration-150 ${
+                className={`absolute top-full mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-primary/30 p-2 shadow-2xl shadow-black/20 dark:shadow-black/70 z-50 animate-in fade-in slide-in-from-top-2 duration-150 ${
                   isAr ? "left-0" : "right-0"
                 }`}
               >
-                <div className="px-3 py-1.5 border-b border-border/50 mb-1">
+                <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 mb-1">
                   <span className="text-[10px] uppercase font-mono tracking-wider font-bold text-primary">
                     {isAr ? "معلومات ومصادر إضافية" : "Company & Resources"}
                   </span>
@@ -456,14 +449,14 @@ export function Header({ activeTab, onSelectTab }: HeaderProps) {
                         className={`flex items-start gap-2.5 p-2 rounded-xl transition-all ${
                           isCurrent
                             ? "bg-primary/15 text-primary font-semibold"
-                            : "hover:bg-primary/10 text-muted-foreground hover:text-foreground"
+                            : "hover:bg-slate-100 dark:hover:bg-slate-800/70 text-muted-foreground hover:text-foreground"
                         }`}
                       >
                         <div
                           className={`p-1.5 rounded-lg shrink-0 mt-0.5 ${
                             isCurrent
                               ? "bg-primary text-primary-foreground"
-                              : "bg-background border border-border/70 text-primary"
+                              : "bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/60 text-primary"
                           }`}
                         >
                           <ItemIcon className="size-3.5" />
@@ -564,7 +557,7 @@ export function Header({ activeTab, onSelectTab }: HeaderProps) {
 
       {/* Mobile Slide-down Drawer */}
       {mobileMenuOpen && (
-        <div className="border-t border-border/70 bg-background/98 backdrop-blur-2xl px-4 py-4 lg:hidden shadow-2xl space-y-4 max-h-[80vh] overflow-y-auto">
+        <div className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-4 lg:hidden shadow-2xl space-y-4 max-h-[80vh] overflow-y-auto">
           {/* Core Tools Section */}
           <div className="space-y-1">
             <div className="text-[10px] font-mono uppercase font-bold tracking-wider text-primary px-2 mb-1.5">

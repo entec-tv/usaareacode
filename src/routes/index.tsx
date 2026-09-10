@@ -69,8 +69,10 @@ import {
   type LookupResult,
 } from "@/lib/nanp";
 import { exportCsv, exportJson, exportXlsx, copyTable } from "@/lib/exporters";
+import { parseUploadedFile, normalizeEasternArabicNumerals } from "@/lib/file-parser";
 import { useI18n } from "@/lib/i18n";
 import { TimeConverterTab } from "@/components/tools/TimeConverterTab";
+import { BulkExtractorTab } from "@/components/tools/BulkExtractorTab";
 import { InteractiveTelecomMap } from "@/components/map/InteractiveTelecomMap";
 import { AreaCodeLeafletMap } from "@/components/map/AreaCodeLeafletMap";
 import { useQuery } from "@tanstack/react-query";
@@ -81,7 +83,6 @@ import { isFirebaseConfigured, trackAnalyticsEvent } from "@/lib/firebase";
 import { TrustBar } from "@/components/landing/TrustBar";
 import { EnterpriseEditorialSplit } from "@/components/landing/EnterpriseEditorialSplit";
 import { InvertedNumbersSection } from "@/components/landing/InvertedNumbersSection";
-import { EnterpriseTestimonials } from "@/components/landing/EnterpriseTestimonials";
 import { GoogleAdBanner } from "@/components/ads/GoogleAdBanner";
 import { AreaCodeNarrativeSection } from "@/components/landing/AreaCodeNarrativeSection";
 import { getAreaNarrative, generateAndSaveNarrative } from "@/lib/ai-narrative-service";
@@ -127,19 +128,7 @@ const POPULAR_NPAS: PopularNpaDefinition[] = [
   { code: "876", nameEn: "Jamaica (Caribbean Risk)", nameAr: "جامايكا (مخاطر احتيال)", badgeEn: "Wangiri Risk Alert", badgeAr: "تحذير احتيال الرنة الواحدة" },
 ];
 
-const SAMPLE_RAW_TEXT = `Call Center Raw Inbound Lead Log - 2026 Batch #409
-Customer Service Records:
-1. John Doe - Philadelphia PA: (215) 555-0143
-2. ENTEC Direct Operations Desk: +1 (223) 203-0312
-3. Executive Mobile: 484-555-9281
-4. Suspicious missed call (1 ring): +1 (876) 555-0199 [Wangiri Fraud Risk]
-5. West Coast Partner: (310) 555-8821
-6. Toronto Canadian Branch: 416-555-4321
-7. Nationwide Support Toll-Free: 1-800-555-0199
-8. Miami Regional Logistics: 3055557711
-9. Offshore Carrier Scam Alert: +1 (473) 555-0182
-10. California Relief Overlay: (738) 555-4422
-11. Washington DC Operations: +1 771-555-0100`;
+
 
 // Clean SVG Flags for Crisp Universal Rendering (Never Glitches on Windows Chromium)
 function UsFlagBadge({ className = "w-4 h-2.5" }: { className?: string }) {
@@ -667,12 +656,6 @@ function IndexPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
 
-  // Bulk extractor state
-  const [bulkInput, setBulkInput] = useState(SAMPLE_RAW_TEXT);
-  const [bulkResults, setBulkResults] = useState<any[]>([]);
-  const [bulkProcessed, setBulkProcessed] = useState(false);
-  const [bulkFilter, setBulkFilter] = useState<"all" | "safe" | "caution" | "risk">("all");
-
   // Map view state
   const [activeMap, setActiveMap] = useState<"us" | "ca">("us");
   const [isMapExpanded, setIsMapExpanded] = useState(false);
@@ -975,75 +958,6 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
     }
   };
 
-  // Bulk processing routine
-  const processBulk = () => {
-    const lines = bulkInput.split(/\r?\n/);
-    const phoneRegex = /(?:\+?1[\s.-]?)?\(?([2-9]\d{2})\)?[\s.-]?([2-9]\d{2})[\s.-]?(\d{4})/g;
-    const items: any[] = [];
-    const seen = new Set<string>();
-
-    for (const line of lines) {
-      let match: RegExpExecArray | null;
-      while ((match = phoneRegex.exec(line)) !== null) {
-        const fullMatch = match[0];
-        const npa = match[1] ?? "";
-        const nxx = match[2] ?? "";
-        const station = match[3] ?? "";
-        if (!npa || !nxx || !station) continue;
-        const digits = `${npa}${nxx}${station}`;
-
-        if (seen.has(digits)) continue;
-        seen.add(digits);
-
-        const areaMatches = AREA_CODE_MAP[npa] ?? [];
-        const areaInfo = areaMatches[0];
-        const timeInfo = areaInfo ? localTime(areaInfo.timezone, now) : null;
-        const callWin = timeInfo ? callingWindow(timeInfo.hour) : null;
-
-        items.push({
-          raw: fullMatch,
-          national: formatUS(digits),
-          e164: toE164(digits),
-          npa,
-          nxx,
-          valid: isValidNanp(digits),
-          region: areaInfo?.regionName ?? "Unknown / Unassigned",
-          city: areaInfo?.cities[0] ?? "Unknown",
-          carrier: areaInfo ? areaInfo.carrier : "Unknown",
-          risk: areaInfo?.risk ?? false,
-          timezone: areaInfo?.tzLabel ?? "N/A",
-          localTimeStr: timeInfo ? timeInfo.time : "N/A",
-          callStatus: callWin?.status ?? "unknown",
-          callLabel: callWin?.label ?? "N/A",
-        });
-      }
-    }
-
-    setBulkResults(items);
-    setBulkProcessed(true);
-  };
-
-  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target?.result as string;
-      if (text) {
-        setBulkInput(text);
-        triggerToast(isAr ? `تم تحميل ملف ${file.name}` : `Loaded ${file.name}`);
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const filteredBulkResults = useMemo(() => {
-    if (bulkFilter === "safe") return bulkResults.filter((r) => r.callStatus === "good");
-    if (bulkFilter === "caution") return bulkResults.filter((r) => r.callStatus === "caution" || r.callStatus === "blocked");
-    if (bulkFilter === "risk") return bulkResults.filter((r) => r.risk);
-    return bulkResults;
-  }, [bulkResults, bulkFilter]);
-
   // Compare Codes objects
   const codeAData = (AREA_CODE_MAP[compareCodeA] ?? [])[0];
   const codeBData = (AREA_CODE_MAP[compareCodeB] ?? [])[0];
@@ -1087,140 +1001,165 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
     <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/25 selection:text-primary">
       <Header activeTab={activeTab} onSelectTab={handleSelectTab} />
 
-      {/* Hero Header - Deep Enterprise Dark Overhaul */}
+      {/* Hero Header - High-Tech Telecom Command Center */}
       <section 
-        className={`relative overflow-hidden bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-800/80 transition-colors duration-150 ${
-          hasSearched && searchQuery.trim() ? "py-2.5 sm:py-3.5" : "pt-8 pb-10 sm:pt-10 sm:pb-12"
+        className={`relative overflow-hidden bg-gradient-to-b from-slate-50 via-slate-100/80 to-white dark:from-[#050811] dark:via-[#080d1a] dark:to-[#04060d] text-slate-900 dark:text-slate-100 border-b border-slate-200/90 dark:border-slate-800/80 transition-all duration-300 ${
+          hasSearched && searchQuery.trim() ? "py-3 sm:py-4" : "pt-10 pb-12 sm:pt-14 sm:pb-16"
         }`}
       >
-        {/* Subtle mesh background gradients */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(30,58,138,0.05),rgba(226,232,240,0.1)_70%,rgba(226,232,240,0.4)_100%)] dark:bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(30,58,138,0.30),rgba(15,23,42,0.85)_70%,rgba(2,6,23,1)_100%)] transition-colors" />
+        {/* Precision Micro Dot-Matrix Pattern */}
+        <div 
+          className="pointer-events-none absolute inset-0 opacity-[0.035] dark:opacity-[0.14] [background-image:radial-gradient(#2563eb_1.25px,transparent_1.25px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_80%_70%_at_50%_40%,black_30%,transparent_90%)]" 
+        />
 
-        {/* Ambient electric glowing auras */}
-        <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[950px] h-[480px] bg-blue-600/5 dark:bg-blue-600/15 blur-[140px] rounded-full" />
-        <div className="pointer-events-none absolute top-1/4 -right-16 w-[450px] h-[350px] bg-cyan-500/5 dark:bg-cyan-500/10 blur-[130px] rounded-full" />
-        <div className="pointer-events-none absolute bottom-12 -left-20 w-[450px] h-[350px] bg-indigo-600/5 dark:bg-indigo-600/15 blur-[130px] rounded-full" />
+        {/* Ambient Luminous Aurora Gradients */}
+        <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[850px] h-[360px] bg-gradient-to-b from-blue-500/15 via-indigo-500/10 to-transparent dark:from-blue-600/25 dark:via-cyan-600/15 dark:to-transparent blur-[120px] rounded-full" />
+        <div className="pointer-events-none absolute top-1/4 -right-12 w-[350px] h-[250px] bg-cyan-500/10 dark:bg-cyan-500/15 blur-[90px] rounded-full" />
+        <div className="pointer-events-none absolute bottom-4 -left-12 w-[350px] h-[250px] bg-indigo-500/10 dark:bg-indigo-600/15 blur-[90px] rounded-full" />
 
-        {/* Generated AI Holographic North America Telecom Map Background */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden flex items-center justify-center z-0 [mask-image:radial-gradient(ellipse_85%_75%_at_50%_48%,black_50%,transparent_100%)]">
-          {/* Dark Mode Image */}
-          <img 
-            src="/images/hero-na-map.jpg" 
-            alt="North America Telecommunications Network Dark" 
-            className="w-full h-full object-cover object-center opacity-55 mix-blend-screen scale-105 select-none pointer-events-none transition-all duration-700 hidden dark:block" 
-          />
-          {/* Light Mode Image */}
-          <img 
-            src="/images/hero-light.jpg" 
-            alt="North America Telecommunications Network Light" 
-            className="w-full h-full object-cover object-center opacity-80 mix-blend-darken scale-105 select-none pointer-events-none transition-all duration-700 block dark:hidden" 
-          />
-        </div>
-
-        {/* High-contrast radial vignette behind central text so typography is 100% crisp */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_50%_46%,rgba(241,245,249,0.6)_0%,rgba(241,245,249,0.1)_50%,transparent_100%)] dark:bg-[radial-gradient(ellipse_65%_55%_at_50%_46%,rgba(2,6,23,0.92)_0%,rgba(2,6,23,0.65)_50%,transparent_100%)] z-10 transition-colors" />
+        {/* Elegant Concentric Telecom Wave Rings */}
+        <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] rounded-full border border-blue-500/[0.07] dark:border-blue-400/[0.07] [mask-image:radial-gradient(circle,black_40%,transparent_75%)]" />
+        <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[920px] h-[920px] rounded-full border border-indigo-500/[0.04] dark:border-indigo-400/[0.05] [mask-image:radial-gradient(circle,black_40%,transparent_75%)]" />
 
         <div className="relative mx-auto max-w-5xl px-4 sm:px-6 text-center z-20">
-          {(!hasSearched || !searchQuery.trim()) && (
-            <div className="flex flex-col items-center mb-4 sm:mb-5">
-              <div className="inline-flex items-center gap-2 rounded-full border border-blue-200/90 dark:border-blue-500/20 bg-white/90 dark:bg-blue-950/40 backdrop-blur-md px-4 py-1.5 text-xs font-semibold text-blue-800 dark:text-blue-200 shadow-xs shadow-blue-500/5 dark:shadow-[0_0_20px_rgba(59,130,246,0.1)]">
-                <span className="size-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
-                <span>{isAr ? "المرجع الرسمي لذكاء شبكات الاتصال • 460+ مفتاح موثق" : "Authoritative Telecom Intelligence • 460+ Real NPAs"}</span>
-                <span className="text-blue-400/50 dark:text-blue-400/30 hidden sm:inline">|</span>
-                <span className="text-[11px] font-mono text-blue-800/70 dark:text-blue-300/50 hidden sm:inline">NANPA & FCC Synced</span>
-              </div>
-            </div>
-          )}
 
-          {/* Cinematic Split Headline (Landing View Only) */}
+          {/* Architectural Headline (Landing View Only) */}
           {(!hasSearched || !searchQuery.trim()) && (
-            <>
-              <h1 className="font-display tracking-tight max-w-4xl mx-auto leading-[1.12] text-3xl sm:text-5xl lg:text-6xl mb-3">
-                <span className="block text-xl sm:text-2xl lg:text-3xl font-medium text-slate-600 dark:text-slate-300 mb-1.5 tracking-normal">
-                  {isAr ? "كل مفتاح اتصال في أمريكا الشمالية،" : "Every North American area code,"}
+            <div className="max-w-4xl mx-auto mb-6 sm:mb-8 animate-in fade-in duration-500">
+              <h1 className="font-display tracking-tight text-3xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.14]">
+                <span className="text-slate-900 dark:text-white">
+                  {isAr ? "كل مفتاح اتصال في أمريكا الشمالية، " : "Every North American Area Code, "}
                 </span>
-                <span className="block font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-800 to-slate-500 dark:from-white dark:via-slate-100 dark:to-slate-400/80">
+                <span className="block sm:inline text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-sky-500 to-indigo-600 dark:from-blue-400 dark:via-sky-300 dark:to-indigo-300">
                   {isAr ? "مُحلل وموثق لحظياً." : "Decoded in Real Time."}
                 </span>
               </h1>
 
-              <p className="mt-2.5 max-w-2xl mx-auto text-sm sm:text-base text-slate-600 dark:text-slate-300/80 leading-relaxed font-normal">
+              <p className="mt-3 sm:mt-4 max-w-2xl mx-auto text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-300/85 leading-relaxed font-normal">
                 {isAr
-                  ? "استعلم فورياً عن 460+ كود أمريكي وكندي، احسب نوافذ اتصال TCPA الآمنة قانونياً، واكشف أرقام الاحتيال الدولي في أجزاء من الثانية."
-                  : "Instant dossier lookup for 460+ US, Canadian & Caribbean area codes. Calculate statutory TCPA calling hours, detect offshore toll fraud, and cleanse number lists."}
+                  ? "استعلم عن 460+ كود، احسب النوافذ القانونية المسموحة (TCPA)، واكشف الاحتيال والرسوم الخارجية بدقة متناهية."
+                  : "Instant dossier lookup for 460+ area codes. Calculate statutory TCPA calling hours and detect offshore toll fraud instantly."}
               </p>
-            </>
+            </div>
           )}
 
-          {/* Unified Search Box - Apple/Linear Dark Spotlight Glass */}
-          <div className={`mx-auto max-w-3xl transition-all ${
-            hasSearched && searchQuery.trim() ? "mt-0" : "mt-6 sm:mt-8"
+          {/* Spotlight Command-Center Search Bar */}
+          <div className={`mx-auto max-w-3xl transition-all duration-300 ${
+            hasSearched && searchQuery.trim() ? "mt-0" : "mt-2"
           }`}>
-            <div className="p-2 sm:p-2.5 flex flex-row items-center gap-2 sm:gap-2.5 rounded-2xl bg-white dark:bg-slate-900/90 backdrop-blur-xl border border-slate-300 dark:border-slate-700 hover:border-primary/60 shadow-[0_12px_36px_rgba(15,23,42,0.10)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] transition-all">
-              <div className="relative flex-1 min-w-0 flex items-center">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-5 text-slate-500 dark:text-slate-400 pointer-events-none" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleSearch(searchQuery);
-                  }}
-                  placeholder={t("search_ph")}
-                  className="w-full bg-transparent pl-11 pr-9 py-3 sm:py-3.5 text-base font-medium text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => {
-                      setSearchQuery("");
-                      setHasSearched(false);
-                    }}
-                    className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-full hover:bg-slate-100 dark:hover:bg-slate-800/80 cursor-pointer transition-colors"
-                  >
-                    <X className="size-4" />
-                  </button>
-                )}
-              </div>
+            <div className="relative group">
+              {/* Outer Glow Halo on focus/hover */}
+              <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-500/20 via-sky-500/20 to-indigo-500/20 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 blur-xl transition-all duration-500 pointer-events-none" />
 
-              <button
-                onClick={() => handleSearch(searchQuery)}
-                className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-md shadow-primary/25 transition-all active:scale-95 shrink-0 cursor-pointer"
-              >
-                <Sparkles className="size-4" />
-                <span>{t("search_btn")}</span>
-              </button>
+              <div className="relative flex flex-row items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-2xl bg-white/95 dark:bg-slate-900/90 backdrop-blur-2xl border border-slate-200/90 dark:border-white/[0.12] group-focus-within:border-blue-500/70 dark:group-focus-within:border-blue-400/60 shadow-[0_12px_40px_rgba(15,23,42,0.08)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.65)] group-focus-within:shadow-[0_16px_45px_rgba(37,99,235,0.18)] transition-all duration-300">
+                <div className="relative flex-1 min-w-0 flex items-center">
+                  <Search className={`absolute top-1/2 -translate-y-1/2 size-5 text-slate-400 group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400 pointer-events-none transition-colors duration-200 ${
+                    isAr ? "right-3.5 sm:right-4" : "left-3.5 sm:left-4"
+                  }`} />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSearch(searchQuery);
+                    }}
+                    placeholder={t("search_ph")}
+                    className={`w-full bg-transparent py-3 sm:py-3.5 text-base sm:text-lg font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none ${
+                      isAr ? "pr-11 sm:pr-12 pl-10" : "pl-11 sm:pl-12 pr-10"
+                    }`}
+                  />
+                  {searchQuery ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery("");
+                        setHasSearched(false);
+                      }}
+                      className={`absolute top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors ${
+                        isAr ? "left-2 sm:left-3" : "right-2 sm:right-3"
+                      }`}
+                      title={isAr ? "مسح" : "Clear"}
+                    >
+                      <X className="size-4" />
+                    </button>
+                  ) : (
+                    <div className={`absolute top-1/2 -translate-y-1/2 hidden md:flex items-center pointer-events-none ${
+                      isAr ? "left-2.5 sm:left-3" : "right-2.5 sm:right-3"
+                    }`}>
+                      <kbd className="px-2 py-0.5 text-[11px] font-mono font-medium text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800/90 rounded-md border border-slate-200 dark:border-slate-700/60 shadow-2xs">
+                        Enter ↵
+                      </kbd>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleSearch(searchQuery)}
+                  className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm sm:text-base shadow-lg shadow-blue-500/25 transition-all duration-200 active:scale-95 shrink-0 cursor-pointer ring-1 ring-inset ring-white/20"
+                >
+                  <Sparkles className="size-4 text-blue-200" />
+                  <span>{t("search_btn")}</span>
+                </button>
+              </div>
             </div>
 
             {/* Quick Example Searches */}
             {(!hasSearched || !searchQuery.trim()) && (
-              <div className="mt-3.5 flex items-center justify-center gap-1.5 flex-wrap text-xs text-slate-600 dark:text-slate-300">
-                <span className="font-semibold flex items-center gap-1 text-slate-700 dark:text-slate-200">
-                  <Sparkles className="size-3 text-primary" />
-                  <span>{isAr ? "شائع للبحث السريع:" : "Trending Searches:"}</span>
+              <div className="mt-4 sm:mt-5 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-xs">
+                <span className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-medium px-1">
+                  <Sparkles className="size-3.5 text-blue-500 dark:text-blue-400" />
+                  <span>{isAr ? "شائع للبحث:" : "Trending Searches:"}</span>
                 </span>
                 {[
-                  { code: "212", label: "212 (NYC)" },
-                  { code: "310", label: "310 (LA)" },
-                  { code: "312", label: "312 (Chicago)" },
-                  { code: "415", label: "415 (SF)" },
-                  { code: "305", label: "305 (Miami)" },
-                  { code: "416", label: "416 (Toronto)" },
-                  { code: "800", label: "800 (Toll-Free)" },
-                  { code: "876", label: "876 (Fraud Risk)", isRisk: true },
+                  { code: "212", label: "212 NYC" },
+                  { code: "310", label: "310 LA" },
+                  { code: "312", label: "312 Chicago" },
+                  { code: "415", label: "415 SF" },
+                  { code: "305", label: "305 Miami" },
+                  { code: "416", label: "416 Toronto" },
+                  { code: "800", label: "800 Toll-Free", isSpecial: true },
+                  { code: "876", label: "876 Fraud Risk", isRisk: true },
                 ].map((chip) => (
                   <button
                     key={chip.code}
                     type="button"
                     onClick={() => handleSearch(chip.code)}
-                    className={`px-3 py-1 rounded-full border text-[11px] font-mono font-semibold transition-all cursor-pointer shadow-2xs active:scale-95 ${
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono font-medium transition-all duration-150 cursor-pointer active:scale-95 ${
                       chip.isRisk
-                        ? "bg-rose-500/15 border-rose-400 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 hover:bg-rose-500/25"
-                        : "bg-slate-100 dark:bg-white/[0.06] border-slate-300 dark:border-white/15 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white"
+                        ? "bg-rose-500/10 border-rose-400/30 text-rose-700 dark:text-rose-300 hover:bg-rose-500/20 hover:border-rose-400/50"
+                        : chip.isSpecial
+                        ? "bg-emerald-500/10 border-emerald-400/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 hover:border-emerald-400/50"
+                        : "bg-white/80 dark:bg-slate-900/60 border-slate-200/90 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-white/20 shadow-2xs"
                     }`}
                   >
-                    {chip.label}
+                    {chip.isRisk && <span className="size-1.5 rounded-full bg-rose-500" />}
+                    {chip.isSpecial && <span className="size-1.5 rounded-full bg-emerald-500" />}
+                    <span>{chip.label}</span>
                   </button>
                 ))}
+              </div>
+            )}
+
+            {/* Live Telemetry & Feature Trust Strip */}
+            {(!hasSearched || !searchQuery.trim()) && (
+              <div className="mt-8 sm:mt-10 pt-6 border-t border-slate-200/70 dark:border-slate-800/70 flex flex-wrap items-center justify-center gap-y-3 gap-x-6 sm:gap-x-9 text-xs text-slate-600 dark:text-slate-400">
+                <div className="inline-flex items-center gap-2 font-medium">
+                  <Shield className="size-4 text-emerald-500 dark:text-emerald-400 shrink-0" />
+                  <span>{isAr ? "460+ مفتاح اتصال موثق (NANPA)" : "460+ Real NPAs Synced"}</span>
+                </div>
+                <div className="inline-flex items-center gap-2 font-medium">
+                  <Clock className="size-4 text-blue-500 dark:text-blue-400 shrink-0" />
+                  <span>{isAr ? "ساعات TCPA القانونية المباشرة" : "Live TCPA Compliance Clocks"}</span>
+                </div>
+                <div className="inline-flex items-center gap-2 font-medium">
+                  <AlertTriangle className="size-4 text-amber-500 dark:text-amber-400 shrink-0" />
+                  <span>{isAr ? "كشف احتيال وتكلفة الأرقام الدولية" : "High-Risk Offshore Detection"}</span>
+                </div>
+                <div className="inline-flex items-center gap-2 font-medium">
+                  <Zap className="size-4 text-cyan-500 dark:text-cyan-400 shrink-0" />
+                  <span>{isAr ? "استجابة فورية فائقة السرعة" : "Sub-millisecond Resolution"}</span>
+                </div>
               </div>
             )}
           </div>
@@ -1753,15 +1692,6 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                 {/* Google AdSense: Mid-Page Leaderboard */}
                 <GoogleAdBanner format="horizontal" className="my-8" />
 
-                {/* SECTION: OPERATIONAL CASE STUDIES & ARCHITECTURAL TRUST */}
-                <EnterpriseTestimonials
-                  onNavigateToBulk={() => {
-                    setActiveTab("bulk");
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                  isAr={isAr}
-                />
-
                 {/* SECTION 5: OUTBOUND COMPLIANCE PROTOCOL (3 STEPS) */}
                 <div>
                   <div className="text-center max-w-xl mx-auto mb-6">
@@ -2196,227 +2126,7 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
             TAB 3: BULK EXTRACTOR & CLEANSER
         ========================================================================= */}
         {activeTab === "bulk" && (
-          <div className="space-y-6">
-            <div>
-              <h2 className="font-display text-xl font-bold text-foreground">
-                {isAr ? "أداة استخراج وتنظيف أرقام الهواتف بالجملة" : "Enterprise Bulk Phone Extractor & Cleanser"}
-              </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {isAr
-                  ? "الصق سجلات المكالمات أو نصوص CRM غير المهيكلة أو ارفع ملف CSV لاستخراج الأرقام وتحويلها إلى E.164 والتحقق من نوافذ الاتصال اللحظية ومخاطر الاحتيال."
-                  : "Paste unformatted call logs, customer notes or upload CSV files to extract 10-digit NANP numbers, verify TCPA curfew status, and flag toll-fraud scams."}
-              </p>
-            </div>
-
-            <div className="glass-panel p-5 rounded-2xl space-y-4">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {isAr ? "النص الخام للمدخلات" : "Raw Input Stream"}
-                </span>
-                <div className="flex items-center gap-2">
-                  <label className="text-xs bg-card hover:bg-muted border border-border px-3 py-1.5 rounded-xl cursor-pointer flex items-center gap-1.5 font-medium text-foreground transition-colors">
-                    <Upload className="size-3" />
-                    <span>{isAr ? "رفع ملف CSV/TXT" : "Upload File"}</span>
-                    <input
-                      type="file"
-                      accept=".csv,.txt,.log"
-                      className="hidden"
-                      onChange={handleFileUpload}
-                    />
-                  </label>
-                  <button
-                    onClick={() => setBulkInput(SAMPLE_RAW_TEXT)}
-                    className="text-xs text-primary hover:underline font-medium cursor-pointer"
-                  >
-                    {isAr ? "تحميل عينة نموذجية" : "Load Sample Lead Log"}
-                  </button>
-                  <button
-                    onClick={() => setBulkInput("")}
-                    className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1 font-medium cursor-pointer"
-                  >
-                    <Trash2 className="size-3" />
-                    <span>{t("clear")}</span>
-                  </button>
-                </div>
-              </div>
-
-              <textarea
-                value={bulkInput}
-                onChange={(e) => setBulkInput(e.target.value)}
-                rows={6}
-                placeholder="Paste customer logs, emails, CSV records with phone numbers here..."
-                className="w-full rounded-xl bg-card/70 border border-border/80 p-3.5 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary resize-y"
-              />
-
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <span className="text-xs text-muted-foreground">
-                  {isAr ? "يدعم التنسيقات: +1، الأقواس، الشُرط، والأرقام المدمجة (10 أرقام)" : "Supports +1 international, brackets, dashes, and contiguous 10-digit strings."}
-                </span>
-
-                <button
-                  onClick={processBulk}
-                  className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-xs flex items-center gap-2 shadow-md hover:brightness-110 active:scale-95 transition-all cursor-pointer"
-                >
-                  <Sparkles className="size-4" />
-                  <span>{isAr ? "استخراج وفحص الأرقام الآن" : "Extract & Analyze Phone Numbers"}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Bulk Results Section */}
-            {bulkProcessed && (
-              <div className="space-y-4 animate-in fade-in duration-300">
-                {/* Metrics */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="glass rounded-xl p-3.5 text-center">
-                    <div className="font-display text-2xl font-bold text-foreground">
-                      {bulkResults.length}
-                    </div>
-                    <div className="text-[11px] text-muted-foreground">Extracted Numbers</div>
-                  </div>
-                  <div className="glass rounded-xl p-3.5 text-center">
-                    <div className="font-display text-2xl font-bold text-emerald-400">
-                      {bulkResults.filter((r) => r.callStatus === "good").length}
-                    </div>
-                    <div className="text-[11px] text-muted-foreground">Safe to Call Now</div>
-                  </div>
-                  <div className="glass rounded-xl p-3.5 text-center">
-                    <div className="font-display text-2xl font-bold text-rose-500 flex items-center justify-center gap-1">
-                      <ShieldAlert className="size-4" />
-                      <span>{bulkResults.filter((r) => r.risk).length}</span>
-                    </div>
-                    <div className="text-[11px] text-muted-foreground">Fraud Traps Flagged</div>
-                  </div>
-                  <div className="glass rounded-xl p-3.5 text-center">
-                    <div className="font-display text-2xl font-bold text-primary">
-                      {new Set(bulkResults.map((r) => r.npa)).size}
-                    </div>
-                    <div className="text-[11px] text-muted-foreground">Unique Area Codes</div>
-                  </div>
-                </div>
-
-                {/* Filter and Export toolbar */}
-                <div className="flex items-center justify-between flex-wrap gap-3">
-                  <div className="flex items-center gap-1 bg-card/60 p-1 rounded-xl border border-border/70 text-xs">
-                    <button
-                      onClick={() => setBulkFilter("all")}
-                      className={`px-3 py-1.5 rounded-lg font-medium cursor-pointer ${bulkFilter === "all" ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground"
-                        }`}
-                    >
-                      All ({bulkResults.length})
-                    </button>
-                    <button
-                      onClick={() => setBulkFilter("safe")}
-                      className={`px-3 py-1.5 rounded-lg font-medium cursor-pointer ${bulkFilter === "safe" ? "bg-emerald-500 text-white font-semibold" : "text-muted-foreground"
-                        }`}
-                    >
-                      Safe to Call ({bulkResults.filter((r) => r.callStatus === "good").length})
-                    </button>
-                    <button
-                      onClick={() => setBulkFilter("caution")}
-                      className={`px-3 py-1.5 rounded-lg font-medium cursor-pointer ${bulkFilter === "caution" ? "bg-amber-500 text-white font-semibold" : "text-muted-foreground"
-                        }`}
-                    >
-                      Caution / Outside ({bulkResults.filter((r) => r.callStatus !== "good").length})
-                    </button>
-                    <button
-                      onClick={() => setBulkFilter("risk")}
-                      className={`px-3 py-1.5 rounded-lg font-medium cursor-pointer ${bulkFilter === "risk" ? "bg-rose-500 text-white font-semibold" : "text-muted-foreground"
-                        }`}
-                    >
-                      Scam Traps ({bulkResults.filter((r) => r.risk).length})
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        exportXlsx(filteredBulkResults, "entec-cleaned-phones.xlsx");
-                        triggerToast(isAr ? "تم تصدير إكسل!" : "Exported Excel file!");
-                      }}
-                      className="px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-xs font-medium flex items-center gap-1.5 text-foreground cursor-pointer"
-                    >
-                      <Download className="size-3" />
-                      <span>{t("export_xlsx")}</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        exportCsv(filteredBulkResults, "entec-cleaned-phones.csv");
-                        triggerToast(isAr ? "تم تصدير CSV!" : "Exported CSV file!");
-                      }}
-                      className="px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-xs font-medium flex items-center gap-1.5 text-foreground cursor-pointer"
-                    >
-                      <Download className="size-3" />
-                      <span>{t("export_csv")}</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Table */}
-                <div className="glass-panel rounded-2xl overflow-hidden border border-border/70">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                      <thead>
-                        <tr className="border-b border-border/80 bg-card/80 text-muted-foreground uppercase tracking-wider text-[10px]">
-                          <th className="py-3 px-4">National Format</th>
-                          <th className="py-3 px-4">E.164</th>
-                          <th className="py-3 px-4">State / Region</th>
-                          <th className="py-3 px-4">Local Time</th>
-                          <th className="py-3 px-4">TCPA Status</th>
-                          <th className="py-3 px-4">Dominant Carrier</th>
-                          <th className="py-3 px-4">Fraud Alert</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border/40 font-medium">
-                        {filteredBulkResults.map((item, idx) => (
-                          <tr key={idx} className="hover:bg-card/40 transition-colors">
-                            <td className="py-2.5 px-4 font-mono font-bold text-foreground">
-                              {item.national}
-                            </td>
-                            <td className="py-2.5 px-4 font-mono text-muted-foreground">
-                              {item.e164}
-                            </td>
-                            <td className="py-2.5 px-4 text-foreground">{item.region}</td>
-                            <td className="py-2.5 px-4 font-mono text-foreground" suppressHydrationWarning>
-                              {item.localTimeStr}
-                            </td>
-                            <td className="py-2.5 px-4">
-                              <span
-                                className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${item.callStatus === "good"
-                                    ? "bg-emerald-500/15 text-emerald-400"
-                                    : item.callStatus === "caution"
-                                      ? "bg-amber-500/15 text-amber-400"
-                                      : "bg-rose-500/15 text-rose-400"
-                                  }`}
-                              >
-                                {item.callLabel}
-                              </span>
-                            </td>
-                            <td className="py-2.5 px-4 font-mono text-[11px] text-muted-foreground max-w-xs truncate" title={item.carrier}>
-                              {item.carrier}
-                            </td>
-                            <td className="py-2.5 px-4">
-                              {item.risk ? (
-                                <span className="inline-flex items-center gap-1 text-destructive font-bold text-[11px]">
-                                  <ShieldAlert className="size-3.5" />
-                                  <span>HIGH RISK</span>
-                                </span>
-                              ) : (
-                                <span className="text-emerald-400 text-[11px] flex items-center gap-1">
-                                  <CheckCircle2 className="size-3.5" />
-                                  <span>Safe</span>
-                                </span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          <BulkExtractorTab isAr={isAr} t={t} onNavigateLookup={handleSearch} />
         )}
 
         {/* =========================================================================

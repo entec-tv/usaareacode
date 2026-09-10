@@ -10,7 +10,6 @@ const cols = [
     links: [
       { to: "/", labelEn: "Lookup Hub", labelAr: "مركز الاستعلام الرئيسي" },
       { to: "/methodology", labelEn: "Data Methodology", labelAr: "منهجية البيانات" },
-      { to: "/analytics", labelEn: "Telemetry & Analytics", labelAr: "التحليلات والمؤشرات" },
     ],
   },
   {

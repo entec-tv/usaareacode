@@ -141,7 +141,7 @@ ${narrative.funFacts.map((f, i) => `${i + 1}. ${f}`).join("\n")}
               <History className="size-4" />
               <span>{isAr ? "تاريخ نشأة المفتاح الهاتفي" : "Telecom Origins & Heritage"}</span>
             </div>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-prose space-y-2 line-clamp-3">
               {narrative.history}
             </p>
           </div>
@@ -154,7 +154,7 @@ ${narrative.funFacts.map((f, i) => `${i + 1}. ${f}`).join("\n")}
               <MapPin className="size-4" />
               <span>{isAr ? "التغطية الجغرافية والأحياء" : "Geographic & Municipal Reach"}</span>
             </div>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-prose space-y-2 line-clamp-3">
               {narrative.geographicCoverage}
             </p>
           </div>
@@ -167,7 +167,7 @@ ${narrative.funFacts.map((f, i) => `${i + 1}. ${f}`).join("\n")}
               <TrendingUp className="size-4" />
               <span>{isAr ? "القيمة الاقتصادية وطلب الخطوط" : "Commercial & Calling Profile"}</span>
             </div>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-prose space-y-2 line-clamp-3">
               {narrative.economicProfile}
             </p>
           </div>
@@ -180,7 +180,7 @@ ${narrative.funFacts.map((f, i) => `${i + 1}. ${f}`).join("\n")}
               <PhoneCall className="size-4" />
               <span>{isAr ? "قواعد الاتصال والتوافق القانوني" : "Dialing Rules & Regulatory Statutes"}</span>
             </div>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-prose space-y-2 line-clamp-3">
               {narrative.dialingRules}
             </p>
           </div>

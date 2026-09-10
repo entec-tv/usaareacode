@@ -102,48 +102,17 @@ function ContactPage() {
           <div className="glass-panel p-8 rounded-3xl border border-border/80 flex flex-col justify-between">
             <div>
               <h2 className="font-display text-xl font-bold text-foreground mb-6">
-                {isAr ? "بيانات المقر الرئيسي" : "Corporate Headquarters"}
+                {isAr ? "قنوات التواصل الرسمية" : "Official Contact Channels"}
               </h2>
 
               <ul className="space-y-6 text-sm">
-                <li className="flex items-start gap-3.5">
-                  <div className="size-10 rounded-xl bg-primary/15 text-primary grid place-items-center shrink-0">
-                    <MapPin className="size-5" />
-                  </div>
-                  <div>
-                    <span className="font-semibold text-foreground block mb-0.5">
-                      {isAr ? "العنوان الفعلي" : "Physical Address"}
-                    </span>
-                    <span className="text-xs text-muted-foreground leading-relaxed">
-                      {settings.address || COMPANY.address}
-                    </span>
-                  </div>
-                </li>
-
-                <li className="flex items-start gap-3.5">
-                  <div className="size-10 rounded-xl bg-primary/15 text-primary grid place-items-center shrink-0">
-                    <Phone className="size-5" />
-                  </div>
-                  <div>
-                    <span className="font-semibold text-foreground block mb-0.5">
-                      {isAr ? "الهاتف المباشر" : "Phone (Direct Desk)"}
-                    </span>
-                    <a
-                      href={`tel:${settings.phone || COMPANY.phoneRaw}`}
-                      className="text-xs text-primary hover:underline font-mono"
-                    >
-                      {settings.phone || COMPANY.phone}
-                    </a>
-                  </div>
-                </li>
-
                 <li className="flex items-start gap-3.5">
                   <div className="size-10 rounded-xl bg-primary/15 text-primary grid place-items-center shrink-0">
                     <Mail className="size-5" />
                   </div>
                   <div>
                     <span className="font-semibold text-foreground block mb-0.5">
-                      {isAr ? "البريد الإلكتروني الرسمي" : "Official Email"}
+                      {isAr ? "البريد الإلكتروني المعتمد" : "Official Support Email"}
                     </span>
                     <a
                       href={`mailto:${settings.supportEmail || COMPANY.email}`}
@@ -151,6 +120,20 @@ function ContactPage() {
                     >
                       {settings.supportEmail || COMPANY.email}
                     </a>
+                  </div>
+                </li>
+
+                <li className="flex items-start gap-3.5">
+                  <div className="size-10 rounded-xl bg-primary/15 text-primary grid place-items-center shrink-0">
+                    <MapPin className="size-5" />
+                  </div>
+                  <div>
+                    <span className="font-semibold text-foreground block mb-0.5">
+                      {isAr ? "نطاق التغطية والعمليات" : "Platform Coverage"}
+                    </span>
+                    <span className="text-xs text-muted-foreground leading-relaxed">
+                      {isAr ? "منصة رقمية موجهة لعموم أمريكا الشمالية (الولايات المتحدة وكندا)" : "Digital platform serving North American telecom users (US & Canada)"}
+                    </span>
                   </div>
                 </li>
               </ul>

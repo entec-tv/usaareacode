@@ -119,7 +119,7 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
             </>
           )}
         </h2>
-        <p className="mt-3 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+        <p className="mt-3 text-sm sm:text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
           {isAr
             ? "حلول مؤسسية متقدمة مصممة خصيصاً لمراكز الاتصال الدولية، أنظمة CRM، ومسؤولي الامتثال القانوني."
             : "Precision automation built for enterprise contact centers, B2B sales engines, and telephony compliance officers."}
@@ -145,10 +145,10 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
                   ? "لا تتصل خارج النافذة القانونية. احمِ مؤسستك من غرامات $1,500."
                   : "Never Dial Outside The Safe Window. Guaranteed."}
               </h3>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-prose">
                 {isAr
-                  ? "يفرض قانون TCPA الفيدرالي وقوانين الولايات (مثل فلوريدا وأوكلاهوما) قيوداً صارمة تحظر الاتصال التسويقي قبل 8:00 صباحاً أو بعد 9:00 مساءً بتوقيت المستلم المحلي. تحسب منظومة إنتك التوقيت الدقيق لكل مقاطعة تلقائياً."
-                  : "Federal TCPA statutes and state mini-TCPAs (e.g. Florida FTSA, Oklahoma) prohibit telemarketing before 8:00 AM or after 9:00 PM in the recipient’s local timezone. ENTEC computes millisecond-accurate safe harbor windows across all 50 states."}
+                  ? "حساب التوقيت الآمن تلقائياً لتجنب الحظر الفيدرالي وغرامات الـ 1,500$."
+                  : "Automated TCPA safe-harbor calculations to prevent $1,500 fines per violation."}
               </p>
             </div>
 
@@ -467,10 +467,10 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
                   ? "كشف احتيال الرنة الواحدة (Wangiri) ومصائد الفواتير قبل الاتصال."
                   : "Detect Offshore Toll Traps Before Your Dialers Connect."}
               </h3>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-prose">
                 {isAr
-                  ? "تشترك 19 دولة كاريبية في كود الدولة +1 مع الولايات المتحدة وكندا، مما يجعل الأرقام تبدو محلية تماماً. تستغل شبكات الاحتيال هذه الثغرة بإجراء رنة واحدة لتشجيع الضحية على معاودة الاتصال، ثم احتساب تعرفة دولية تصل إلى $30 للدقيقة. يقوم نظام إنتك بفرز وتصنيف هذه الأكواد فورياً."
-                  : "Nineteen Caribbean and North Atlantic nations share the +1 country code with the US and Canada, masquerading as standard domestic telephone numbers. Fraud syndicates generate one-ring robocalls to provoke callbacks that bill unsuspecting victims up to $30/minute. ENTEC instantly flags high-surcharge non-domestic NPAs."}
+                  ? "كشف فوري لفخاخ الأرقام الكاريبية لحماية ميزانيتك من فواتير الاحتيال الخفية."
+                  : "Instant detection of offshore +1 toll traps to shield your campaigns from hidden tariffs."}
               </p>
             </div>
 
