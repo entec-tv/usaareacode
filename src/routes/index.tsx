@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, useRef, type ChangeEvent } from "react";
+import { useEffect, useMemo, useState, useRef, type ChangeEvent, lazy, Suspense } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -73,8 +73,8 @@ import { parseUploadedFile, normalizeEasternArabicNumerals } from "@/lib/file-pa
 import { useI18n } from "@/lib/i18n";
 import { TimeConverterTab } from "@/components/tools/TimeConverterTab";
 import { BulkExtractorTab } from "@/components/tools/BulkExtractorTab";
-import { InteractiveTelecomMap } from "@/components/map/InteractiveTelecomMap";
-import { AreaCodeLeafletMap } from "@/components/map/AreaCodeLeafletMap";
+const InteractiveTelecomMap = lazy(() => import("@/components/map/InteractiveTelecomMap").then(m => ({ default: m.InteractiveTelecomMap })));
+const AreaCodeLeafletMap = lazy(() => import("@/components/map/AreaCodeLeafletMap").then(m => ({ default: m.AreaCodeLeafletMap })));
 import { useQuery } from "@tanstack/react-query";
 import { fetchAreaCodesFromDb, adaptDbRecordToAreaCode, logSearchQuery, logEngagementEvent } from "@/lib/collections";
 import { getClientGeoInfo, checkSearchVelocity } from "@/lib/geo";
@@ -580,7 +580,8 @@ function AreaCodeMapCard({
   onNavigateToRadar?: (() => void) | undefined;
 }) {
   return (
-    <AreaCodeLeafletMap
+    <Suspense fallback={<div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-xl"><div className="animate-pulse text-slate-400">Loading Map...</div></div>}>
+<AreaCodeLeafletMap
       item={item}
       t={t}
       isAr={isAr}
@@ -2148,7 +2149,8 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
             </div>
 
             {/* Real Interactive Telecom Coverage Map Engine */}
-            <InteractiveTelecomMap
+            <Suspense fallback={<div className="h-[500px] w-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-[2rem]"><div className="animate-pulse text-slate-400">Loading Map...</div></div>}>
+<InteractiveTelecomMap
               initialRegion={activeMap === "ca" ? "ca" : "us"}
               onSelectCode={(code) => {
                 setSearchQuery(code);
