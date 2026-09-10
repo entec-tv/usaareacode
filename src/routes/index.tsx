@@ -1015,9 +1015,9 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
         />
 
         {/* Ambient Luminous Aurora Gradients */}
-        <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[850px] h-[360px] bg-gradient-to-b from-blue-500/15 via-indigo-500/10 to-transparent dark:from-blue-600/25 dark:via-cyan-600/15 dark:to-transparent blur-[120px] rounded-full" />
-        <div className="pointer-events-none absolute top-1/4 -right-12 w-[350px] h-[250px] bg-cyan-500/10 dark:bg-cyan-500/15 blur-[90px] rounded-full" />
-        <div className="pointer-events-none absolute bottom-4 -left-12 w-[350px] h-[250px] bg-indigo-500/10 dark:bg-indigo-600/15 blur-[90px] rounded-full" />
+        <div className="hidden md:block pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[850px] h-[360px] bg-gradient-to-b from-blue-500/15 via-indigo-500/10 to-transparent dark:from-blue-600/25 dark:via-cyan-600/15 dark:to-transparent blur-[120px] rounded-full" />
+        <div className="hidden md:block pointer-events-none absolute top-1/4 -right-12 w-[350px] h-[250px] bg-cyan-500/10 dark:bg-cyan-500/15 blur-[90px] rounded-full" />
+        <div className="hidden md:block pointer-events-none absolute bottom-4 -left-12 w-[350px] h-[250px] bg-indigo-500/10 dark:bg-indigo-600/15 blur-[90px] rounded-full" />
 
         {/* Elegant Concentric Telecom Wave Rings */}
         <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] rounded-full border border-blue-500/[0.07] dark:border-blue-400/[0.07] [mask-image:radial-gradient(circle,black_40%,transparent_75%)]" />
