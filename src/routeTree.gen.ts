@@ -10,9 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as NpaRouteImport } from './routes/$npa'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as ConverterRouteImport } from './routes/converter'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as MethodologyRouteImport } from './routes/methodology'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -21,6 +23,11 @@ import { Route as TermsRouteImport } from './routes/terms'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NpaRoute = NpaRouteImport.update({
+  id: '/$npa',
+  path: '/$npa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -36,6 +43,11 @@ const BlogRoute = BlogRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConverterRoute = ConverterRouteImport.update({
+  id: '/converter',
+  path: '/converter',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqRoute = FaqRouteImport.update({
@@ -61,9 +73,11 @@ const TermsRoute = TermsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$npa': typeof NpaRoute
   '/about': typeof AboutRoute
   '/blog': typeof BlogRoute
   '/contact': typeof ContactRoute
+  '/converter': typeof ConverterRoute
   '/faq': typeof FaqRoute
   '/methodology': typeof MethodologyRoute
   '/privacy': typeof PrivacyRoute
@@ -71,9 +85,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$npa': typeof NpaRoute
   '/about': typeof AboutRoute
   '/blog': typeof BlogRoute
   '/contact': typeof ContactRoute
+  '/converter': typeof ConverterRoute
   '/faq': typeof FaqRoute
   '/methodology': typeof MethodologyRoute
   '/privacy': typeof PrivacyRoute
@@ -82,9 +98,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$npa': typeof NpaRoute
   '/about': typeof AboutRoute
   '/blog': typeof BlogRoute
   '/contact': typeof ContactRoute
+  '/converter': typeof ConverterRoute
   '/faq': typeof FaqRoute
   '/methodology': typeof MethodologyRoute
   '/privacy': typeof PrivacyRoute
@@ -94,9 +112,11 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$npa'
     | '/about'
     | '/blog'
     | '/contact'
+    | '/converter'
     | '/faq'
     | '/methodology'
     | '/privacy'
@@ -104,9 +124,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$npa'
     | '/about'
     | '/blog'
     | '/contact'
+    | '/converter'
     | '/faq'
     | '/methodology'
     | '/privacy'
@@ -114,9 +136,11 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/$npa'
     | '/about'
     | '/blog'
     | '/contact'
+    | '/converter'
     | '/faq'
     | '/methodology'
     | '/privacy'
@@ -125,9 +149,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  NpaRoute: typeof NpaRoute
   AboutRoute: typeof AboutRoute
   BlogRoute: typeof BlogRoute
   ContactRoute: typeof ContactRoute
+  ConverterRoute: typeof ConverterRoute
   FaqRoute: typeof FaqRoute
   MethodologyRoute: typeof MethodologyRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -141,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$npa': {
+      id: '/$npa'
+      path: '/$npa'
+      fullPath: '/$npa'
+      preLoaderRoute: typeof NpaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -162,6 +195,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/converter': {
+      id: '/converter'
+      path: '/converter'
+      fullPath: '/converter'
+      preLoaderRoute: typeof ConverterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faq': {
@@ -197,9 +237,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  NpaRoute: NpaRoute,
   AboutRoute: AboutRoute,
   BlogRoute: BlogRoute,
   ContactRoute: ContactRoute,
+  ConverterRoute: ConverterRoute,
   FaqRoute: FaqRoute,
   MethodologyRoute: MethodologyRoute,
   PrivacyRoute: PrivacyRoute,

@@ -83,7 +83,7 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
   isAr,
 }) => {
   const [selectedTz, setSelectedTz] = useState<(typeof TIMEZONE_PRESETS)[number]>(TIMEZONE_PRESETS[0]!);
-  const [selectedFraud, setSelectedFraud] = useState<(typeof FRAUD_SAMPLES)[number]>(FRAUD_SAMPLES[0]!);
+  const [expandedFraudCode, setExpandedFraudCode] = useState<string | null>(FRAUD_SAMPLES[0]!.code);
 
   // Calculate local time for selected timezone preset
   const nowUtc = new Date();
@@ -127,174 +127,125 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
       </div>
 
       {/* =========================================================================
-          EDITORIAL SPLIT A: TCPA COMPLIANCE & CALLING WINDOW ENGINE
+          EDITORIAL SPLIT A: TCPA COMPLIANCE & CALLING WINDOW ENGINE (REDESIGNED)
       ========================================================================= */}
-      <div className="relative rounded-3xl border border-slate-200/90 dark:border-border/80 bg-gradient-to-br from-white via-slate-50/80 to-blue-50/20 dark:from-card dark:via-card/90 dark:to-card/50 p-6 sm:p-8 lg:p-10 shadow-xl shadow-slate-200/50 dark:shadow-lg dark:shadow-black/40 overflow-hidden">
+      <div className="relative rounded-3xl border border-slate-200/90 dark:border-border/80 bg-gradient-to-br from-white via-slate-50/80 to-blue-50/20 dark:from-card dark:via-card/90 dark:to-card/50 p-6 sm:p-8 lg:p-10 shadow-xl shadow-slate-200/50 dark:shadow-lg dark:shadow-black/40 overflow-hidden flex flex-col gap-8">
         <div className="pointer-events-none absolute -top-32 -right-32 size-96 bg-emerald-500/[0.07] blur-[100px] rounded-full" />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          {/* Left Column: Editorial Copy + Interactive Time Slider */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/80 dark:border-emerald-500/20 text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
-                <Clock className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span>47 CFR § 64.1200 • TCPA Safe Harbor</span>
-              </div>
-              <h3 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-tight">
-                {isAr
-                  ? "لا تتصل خارج النافذة القانونية. احمِ مؤسستك من غرامات $1,500."
-                  : "Never Dial Outside The Safe Window. Guaranteed."}
-              </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed max-w-prose">
-                {isAr
-                  ? "حساب التوقيت الآمن تلقائياً لتجنب الحظر الفيدرالي وغرامات الـ 1,500$."
-                  : "Automated TCPA safe-harbor calculations to prevent $1,500 fines per violation."}
-              </p>
+        {/* Top Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+          <div className="space-y-2 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/80 dark:border-emerald-500/20 text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
+              <Clock className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>47 CFR § 64.1200 • TCPA Safe Harbor</span>
             </div>
+            <h3 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-tight">
+              {isAr
+                ? "لا تتصل خارج النافذة القانونية. احمِ مؤسستك من غرامات $1,500."
+                : "Never Dial Outside The Safe Window. Guaranteed."}
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {isAr
+                ? "حساب التوقيت الآمن تلقائياً لتجنب الحظر الفيدرالي وغرامات الـ 1,500$."
+                : "Automated TCPA safe-harbor calculations to prevent $1,500 fines per violation."}
+            </p>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+             <button onClick={onNavigateToConverter} className="btn-primary">
+                <span>{isAr ? "محول المناطق الزمنية" : "Timezone Converter"}</span>
+                <ArrowRight className="size-4" />
+              </button>
+          </div>
+        </div>
 
-            {/* Interactive 24-Hour Timeline Bar */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/80 dark:bg-card/80 border border-slate-200/80 dark:border-border/70 space-y-4 shadow-xs">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-foreground">
-                    {isAr ? "المنطقة الزمنية المختارة:" : "Active Zone:"}
-                  </span>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {TIMEZONE_PRESETS.map((preset) => (
-                      <button
-                        key={preset.id}
-                        onClick={() => setSelectedTz(preset)}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
-                          selectedTz.id === preset.id
-                            ? "bg-emerald-500 text-white shadow-xs"
-                            : "bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        {preset.id}
-                      </button>
-                    ))}
-                  </div>
+        {/* Dashboard Strip */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch relative z-10">
+          {/* Left: Live Clock & Status */}
+          <div className="lg:col-span-4 rounded-2xl bg-slate-950/80 border border-slate-800 p-6 flex flex-col justify-between shadow-inner relative overflow-hidden group">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-700" />
+            <div className="relative z-10 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono text-slate-400 uppercase">{isAr ? "الوقت الفعلي" : "Live Local Time"}</span>
+                <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-slate-300">
+                  <Globe2 className="size-3 text-cyan-400" />
+                  {selectedTz.id} ({selectedTz.offsetHours > 0 ? "+" : ""}{selectedTz.offsetHours}h)
+                </span>
+              </div>
+              <div className="font-mono text-4xl sm:text-5xl font-black text-white tracking-tight">
+                {displayTime()}
+              </div>
+              
+              <div className={`mt-4 p-3 rounded-xl border flex items-start gap-3 backdrop-blur-sm transition-colors ${
+                  isSafeWindow 
+                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" 
+                    : "bg-rose-500/10 border-rose-500/20 text-rose-400"
+                }`}>
+                {isSafeWindow ? <ShieldCheck className="size-5 shrink-0 mt-0.5" /> : <ShieldAlert className="size-5 shrink-0 mt-0.5 animate-pulse" />}
+                <div>
+                  <div className="font-bold text-sm">{isSafeWindow ? (isAr ? "مسموح بالاتصال (Safe)" : "TCPA Approved (Safe)") : (isAr ? "وقت محظور (Blocked)" : "Curfew Active (Blocked)")}</div>
+                  <div className="text-[10px] opacity-80 mt-1">{isSafeWindow ? (isAr ? "ضمن النافذة القانونية 8ص-9م" : "Within 8am-9pm legal window") : (isAr ? "خارج ساعات العمل المسموحة" : "Outside legal contact hours")}</div>
                 </div>
+              </div>
+            </div>
+          </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-black text-sm text-foreground">{displayTime()}</span>
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold inline-flex items-center gap-1 ${
-                      isSafeWindow
-                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
-                        : "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30"
-                    }`}
-                  >
-                    <span className={`size-1.5 rounded-full ${isSafeWindow ? "bg-emerald-500" : "bg-rose-500 animate-pulse"}`} />
-                    <span>{isSafeWindow ? (isAr ? "مسموح قانونياً" : "TCPA Safe") : (isAr ? "محظور قانونياً" : "TCPA Blocked")}</span>
-                  </span>
+          {/* Right: 24hr Timeline & Controls */}
+          <div className="lg:col-span-8 rounded-2xl bg-white/50 dark:bg-black/20 border border-slate-200/80 dark:border-white/5 p-6 flex flex-col justify-between">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <span className="text-xs font-bold text-foreground flex items-center gap-2">
+                  <Activity className="size-4 text-blue-500" />
+                  {isAr ? "تحليل النافذة الزمنية لـ 24 ساعة:" : "24-Hour Active Window Analysis:"}
+                </span>
+                <div className="flex items-center gap-1.5 flex-wrap bg-white dark:bg-black/40 p-1 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
+                  {TIMEZONE_PRESETS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => setSelectedTz(preset)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+                        selectedTz.id === preset.id
+                          ? "bg-foreground text-background shadow-md"
+                          : "text-muted-foreground hover:text-foreground hover:bg-slate-100 dark:hover:bg-white/5"
+                      }`}
+                    >
+                      {preset.id}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Visual 24-Hour Strip */}
-              <div className="space-y-1.5">
-                <div className="relative h-7 w-full rounded-xl overflow-hidden flex border border-border/70">
-                  {/* Blocked Morning (12am - 8am) = 8 hours (33.33%) */}
-                  <div className="h-full w-[33.33%] bg-rose-500/20 border-r border-rose-500/30 flex items-center justify-center text-[10px] font-mono text-rose-600 dark:text-rose-400 font-bold">
-                    12 AM – 8 AM (BLOCKED)
+              {/* Advanced Visual 24-Hour Strip */}
+              <div className="space-y-2">
+                <div className="relative h-10 w-full rounded-xl overflow-hidden flex border border-border/70 shadow-inner bg-slate-100 dark:bg-slate-900">
+                  {/* Blocked Morning */}
+                  <div className="h-full w-[33.33%] bg-gradient-to-b from-rose-500/10 to-rose-500/5 border-r border-rose-500/20 relative">
                   </div>
-                  {/* Safe Calling Window (8am - 9pm) = 13 hours (54.17%) */}
-                  <div className="h-full w-[54.17%] bg-emerald-500/25 border-r border-emerald-500/30 flex items-center justify-center text-[10px] font-mono text-emerald-700 dark:text-emerald-300 font-bold">
-                    8 AM – 9 PM SAFE HARBOR
+                  {/* Safe Calling Window */}
+                  <div className="h-full w-[54.17%] bg-gradient-to-b from-emerald-500/20 to-emerald-500/10 border-r border-emerald-500/20 flex items-center justify-center relative">
+                    <span className="text-[10px] sm:text-xs font-mono text-emerald-700 dark:text-emerald-400 font-bold tracking-widest bg-emerald-500/10 px-2 sm:px-3 py-1 rounded-full backdrop-blur-sm border border-emerald-500/20 shadow-sm truncate max-w-[90%]">
+                      8 AM — 9 PM SAFE HARBOR
+                    </span>
                   </div>
-                  {/* Blocked Evening (9pm - 12am) = 3 hours (12.5%) */}
-                  <div className="h-full w-[12.5%] bg-rose-500/20 flex items-center justify-center text-[10px] font-mono text-rose-600 dark:text-rose-400 font-bold">
-                    9 PM – 12 AM
+                  {/* Blocked Evening */}
+                  <div className="h-full w-[12.5%] bg-gradient-to-b from-rose-500/10 to-rose-500/5 relative">
                   </div>
 
                   {/* Current Hour Indicator Needle */}
                   <div
-                    className="absolute top-0 bottom-0 w-1 bg-foreground shadow-md transition-all duration-300 -translate-x-1/2 flex flex-col items-center justify-between"
+                    className="absolute top-0 bottom-0 w-1.5 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)] transition-all duration-300 -translate-x-1/2 rounded-full z-10"
                     style={{ left: `${(localHour / 24) * 100}%` }}
                   >
-                    <div className="size-2 rounded-full bg-foreground" />
-                    <div className="size-2 rounded-full bg-foreground" />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground px-0.5">
-                  <span>12:00 AM</span>
-                  <span>06:00 AM</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">08:00 AM (START)</span>
-                  <span>12:00 PM</span>
-                  <span>06:00 PM</span>
-                  <span className="text-rose-600 dark:text-rose-400 font-bold">09:00 PM (CUTOFF)</span>
-                  <span>11:59 PM</span>
-                </div>
-              </div>
-
-              {/* Features list */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 text-xs text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
-                  <span>{isAr ? "مراعاة التوقيت الصيفي والشتوي التلقائي" : "Automatic Daylight Saving Time sync"}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
-                  <span>{isAr ? "تغطية 48 ولاية متجاورة + ألاسكا وهاواي" : "50 States + Canadian CRTC statutory rules"}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 pt-1 flex-wrap">
-              <button
-                onClick={onNavigateToConverter}
-                className="btn-primary"
-              >
-                <span>{isAr ? "محول المناطق الزمنية" : "Timezone Converter"}</span>
-                <ArrowRight className="size-4" />
-              </button>
-              <button
-                onClick={() => onInspectCode(selectedTz.code)}
-                className="btn-secondary"
-              >
-                {isAr ? `فحص الكود (${selectedTz.code})` : `Inspect NPA (${selectedTz.code})`}
-              </button>
-            </div>
-          </div>
-
-          {/* Right Column: Cinematic Call Center Visual with Live Dossier Card */}
-          <div className="lg:col-span-5">
-            <div className="relative rounded-3xl overflow-hidden border border-emerald-500/40 shadow-2xl shadow-emerald-500/10 ring-1 ring-emerald-500/20 group">
-              <img
-                src="/images/callcenter-pro.webp"
-                alt="Professional Call Center Telecom Infrastructure"
-                className="w-full h-80 sm:h-96 object-cover brightness-110 contrast-105 saturate-110 group-hover:scale-105 transition-all duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/25 to-transparent pointer-events-none" />
-
-              {/* Floating Live Badge Top Left */}
-              <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/95 backdrop-blur-md border border-emerald-500/40 text-xs font-mono font-bold text-foreground shadow-md">
-                <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>ACTIVE CALL SHIELD</span>
-              </div>
-
-              {/* Floating Inspection Card Bottom */}
-              <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl glass-panel border border-white/20 dark:border-white/15 backdrop-blur-md space-y-2.5 shadow-xl">
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="size-7 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-mono font-bold text-xs border border-emerald-500/30">
-                      {selectedTz.code}
-                    </div>
-                    <div>
-                      <div className="font-bold text-foreground text-xs">{selectedTz.nameEn}</div>
-                      <div className="text-[10px] text-muted-foreground font-mono">Local Recipient Window</div>
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded shadow-md whitespace-nowrap">
+                      {displayTime()}
                     </div>
                   </div>
-                  <div className="text-right font-mono">
-                    <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{isSafeWindow ? "APPROVED" : "STANDBY"}</div>
-                    <div className="text-[10px] text-muted-foreground">{displayTime()}</div>
-                  </div>
                 </div>
 
-                <div className="pt-2 border-t border-border/60 flex items-center justify-between text-[11px] text-muted-foreground">
-                  <span>Potential Penalty Risk:</span>
-                  <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400">$0.00 (Protected)</span>
+                <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground px-1">
+                  <span>12 AM</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold relative"><span className="absolute -top-3 left-1/2 -translate-x-1/2 text-lg">|</span>8 AM</span>
+                  <span className="text-rose-600 dark:text-rose-400 font-bold relative"><span className="absolute -top-3 left-1/2 -translate-x-1/2 text-lg">|</span>9 PM</span>
+                  <span>12 AM</span>
                 </div>
               </div>
             </div>
@@ -303,219 +254,133 @@ export const EnterpriseEditorialSplit: React.FC<EnterpriseEditorialSplitProps> =
       </div>
 
       {/* =========================================================================
-          EDITORIAL SPLIT B: OFFSHORE TOLL FRAUD & WANGIRI INTERCEPTOR
+          EDITORIAL SPLIT B: OFFSHORE TOLL FRAUD & WANGIRI INTERCEPTOR (REDESIGNED)
       ========================================================================= */}
-      <div className="relative rounded-3xl border border-slate-200/90 dark:border-white/10 bg-gradient-to-br from-white via-slate-50/80 to-amber-50/20 dark:from-card dark:via-card/90 dark:to-card/50 p-6 sm:p-8 lg:p-10 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/40 overflow-hidden">
+      <div className="relative rounded-3xl border border-slate-200/90 dark:border-white/10 bg-gradient-to-br from-white via-slate-50/80 to-amber-50/20 dark:from-card dark:via-card/90 dark:to-card/50 p-6 sm:p-8 lg:p-10 shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/40 overflow-hidden flex flex-col gap-8">
         <div className="pointer-events-none absolute -bottom-32 -left-32 size-96 bg-amber-500/[0.07] blur-[100px] rounded-full" />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          {/* Left Column: Interactive Live Fraud Simulator */}
-          <div className="lg:col-span-5 order-2 lg:order-1">
-            <div className="rounded-3xl border border-amber-300/80 dark:border-amber-500/30 bg-slate-50/95 dark:bg-card/95 p-5 sm:p-6 space-y-5 shadow-lg shadow-amber-500/5 relative overflow-hidden">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="size-8 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                    <ShieldAlert className="size-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-mono font-bold text-foreground">WANGIRI RADAR SIMULATOR</div>
-                    <div className="text-[10px] text-muted-foreground">Test NPA Surcharge Risk Index</div>
-                  </div>
-                </div>
-                <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-200/80 dark:border-rose-500/30">
-                  LIVE INTERCEPT
-                </span>
-              </div>
-
-              {/* Quick Sample Selector */}
-              <div className="space-y-1.5">
-                <span className="text-[11px] font-semibold text-muted-foreground">
-                  {isAr ? "اختر مفتاح منطقة للفحص الفوري:" : "Select NPA Sample to Screen:"}
-                </span>
-                <div className="grid grid-cols-2 gap-2">
-                  {FRAUD_SAMPLES.map((s) => (
-                    <button
-                      key={s.code}
-                      onClick={() => setSelectedFraud(s)}
-                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                        selectedFraud.code === s.code
-                          ? "bg-amber-500/15 border-amber-500/50 shadow-xs ring-1 ring-amber-500/30"
-                          : "bg-white dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] border-slate-200/80 dark:border-white/10"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono font-black text-xs text-foreground">{s.code}</span>
-                        <span
-                          className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full ${
-                            s.riskScore > 70
-                              ? "bg-rose-500/15 text-rose-600 dark:text-rose-400"
-                              : "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                          }`}
-                        >
-                          {s.riskScore}/100
-                        </span>
-                      </div>
-                      <div className="text-[10px] text-muted-foreground truncate mt-0.5">{s.regionEn}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Enhanced Prominent Risk Severity Gauge & Analysis Result */}
-              <div className="p-4 rounded-2xl bg-white dark:bg-white/[0.03] border border-slate-200/90 dark:border-white/10 space-y-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-mono uppercase text-muted-foreground block">Classification</span>
-                    <div className="font-bold text-xs text-foreground">{selectedFraud.typeEn}</div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] font-mono uppercase text-muted-foreground block">Tariff Potential</span>
-                    <div className="font-bold font-mono text-xs text-amber-600 dark:text-amber-400">
-                      {selectedFraud.rate}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Prominent Multi-Segment Risk Severity Meter */}
-                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-black/30 border border-slate-200/60 dark:border-white/10 space-y-2.5">
-                  <div className="flex items-end justify-between">
-                    <div>
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">Risk Severity Index</span>
-                      <div className="flex items-baseline gap-1 mt-0.5">
-                        <span
-                          className={`font-mono text-2xl font-black ${
-                            selectedFraud.riskScore > 70
-                              ? "text-rose-600 dark:text-rose-400"
-                              : selectedFraud.riskScore > 30
-                              ? "text-amber-600 dark:text-amber-400"
-                              : "text-emerald-600 dark:text-emerald-400"
-                          }`}
-                        >
-                          {selectedFraud.riskScore}
-                        </span>
-                        <span className="text-xs font-mono text-muted-foreground font-semibold">/ 100</span>
-                      </div>
-                    </div>
-
-                    <span
-                      className={`text-[10px] font-mono font-bold px-2.5 py-1 rounded-full border ${
-                        selectedFraud.riskScore > 70
-                          ? "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30"
-                          : selectedFraud.riskScore > 30
-                          ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
-                          : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
-                      }`}
-                    >
-                      {selectedFraud.riskScore > 70 ? "HIGH PENALTY FRAUD" : selectedFraud.riskScore > 30 ? "CAUTION SCREEN" : "CLEARED SAFE"}
-                    </span>
-                  </div>
-
-                  {/* 5-Stage Visual Segmented Progress Bar */}
-                  <div className="grid grid-cols-5 gap-1.5 h-3">
-                    {[
-                      { threshold: 20, color: "bg-emerald-500" },
-                      { threshold: 40, color: "bg-emerald-400" },
-                      { threshold: 60, color: "bg-amber-400" },
-                      { threshold: 80, color: "bg-amber-500" },
-                      { threshold: 100, color: "bg-rose-500" },
-                    ].map((segment, idx) => {
-                      const isActive = selectedFraud.riskScore >= segment.threshold - 15;
-                      return (
-                        <div
-                          key={idx}
-                          className={`rounded-sm transition-all duration-500 ${
-                            isActive
-                              ? `${segment.color} shadow-xs`
-                              : "bg-slate-200 dark:bg-white/10"
-                          }`}
-                        />
-                      );
-                    })}
-                  </div>
-
-                  <div className="flex items-center justify-between text-[9px] font-mono text-muted-foreground uppercase pt-0.5">
-                    <span>Safe</span>
-                    <span>Guarded</span>
-                    <span>Severe</span>
-                  </div>
-                </div>
-
-                <p className="text-[11px] text-muted-foreground leading-relaxed pt-1 border-t border-slate-100 dark:border-white/10">
-                  {isAr ? selectedFraud.warningAr : selectedFraud.warningEn}
-                </p>
-              </div>
-
-              <button
-                onClick={() => onInspectCode(selectedFraud.code)}
-                className="btn-primary w-full"
-              >
-                <span>{isAr ? `فحص ملف الكود الكامل (${selectedFraud.code})` : `Inspect Full Dossier (${selectedFraud.code})`}</span>
-                <ArrowRight className="size-3.5" />
-              </button>
+        {/* Top Header */}
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 relative z-10">
+          <div className="space-y-2 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/20 text-xs font-mono font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">
+              <Flame className="size-3.5 text-amber-600 dark:text-amber-400" />
+              <span>+1 Caribbean Fraud Shield • PRS Interception</span>
             </div>
+            <h3 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-tight">
+              {isAr
+                ? "كشف احتيال الرنة الواحدة ومصائد الفواتير قبل الاتصال."
+                : "Detect Offshore Toll Traps Before Connecting."}
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {isAr
+                ? "كشف فوري لفخاخ الأرقام الكاريبية لحماية ميزانيتك من فواتير الاحتيال الخفية. اضغط على أي كود لرؤية تفاصيل الخطر."
+                : "Instant detection of offshore +1 toll traps to shield your campaigns from hidden tariffs. Expand cards below to inspect."}
+            </p>
           </div>
-
-          {/* Right Column: Editorial Copy */}
-          <div className="lg:col-span-7 space-y-6 order-1 lg:order-2">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/20 text-xs font-mono font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">
-                <Flame className="size-3.5 text-amber-600 dark:text-amber-400" />
-                <span>+1 Caribbean Fraud Shield • PRS Interception</span>
-              </div>
-              <h3 className="text-2xl sm:text-3xl font-display font-extrabold text-foreground tracking-tight">
-                {isAr
-                  ? "كشف احتيال الرنة الواحدة (Wangiri) ومصائد الفواتير قبل الاتصال."
-                  : "Detect Offshore Toll Traps Before Your Dialers Connect."}
-              </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed max-w-prose">
-                {isAr
-                  ? "كشف فوري لفخاخ الأرقام الكاريبية لحماية ميزانيتك من فواتير الاحتيال الخفية."
-                  : "Instant detection of offshore +1 toll traps to shield your campaigns from hidden tariffs."}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-card/70 border border-slate-200/80 dark:border-white/10 space-y-1.5">
-                <div className="flex items-center gap-2 font-bold text-xs text-foreground">
-                  <Zap className="size-3.5 text-amber-500" />
-                  <span>{isAr ? "19 مفتاح كاريبي موثق" : "19 Caribbean NPAs Indexed"}</span>
-                </div>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  {isAr
-                    ? "تغطية شاملة لجامايكا (876)، الباهاماس (242)، برمودا (441)، الدومينيكان (809/829)، وجزر فيرجن."
-                    : "Comprehensive registry for Jamaica (876), Bahamas (242), Bermuda (441), Dominican Rep. (809/829), and Virgin Islands."}
-                </p>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-card/70 border border-slate-200/80 dark:border-white/10 space-y-1.5">
-                <div className="flex items-center gap-2 font-bold text-xs text-foreground">
-                  <Lock className="size-3.5 text-primary" />
-                  <span>{isAr ? "تنظيف القوائم قبل الحقن" : "Pre-Dial CRM Lead Cleansing"}</span>
-                </div>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  {isAr
-                    ? "استبعاد أرقام الاحتيال تلقائياً من قوائم المبيعات لمنع الخسائر المالية غير المتوقعة لشركتك."
-                    : "Automatically strip international toll numbers from your sales CRM lists prior to campaign dispatch."}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 pt-1 flex-wrap">
-              <button
-                onClick={onNavigateToBulk}
-                className="btn-primary"
-              >
+          <div className="flex items-center gap-3 shrink-0">
+             <button onClick={onNavigateToBulk} className="btn-primary">
                 <span>{isAr ? "تنظيف وفلترة الأرقام" : "Clean Lead Lists"}</span>
                 <ArrowRight className="size-4" />
               </button>
-              <button
-                onClick={() => onInspectCode("876")}
-                className="btn-secondary"
-              >
-                {isAr ? "فحص كود جامايكا (876)" : "Screen Jamaica (876)"}
-              </button>
-            </div>
           </div>
+        </div>
+
+        {/* Grid of expandable Risk Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
+          {FRAUD_SAMPLES.map((s) => {
+            const isHighRisk = s.riskScore > 70;
+            const isMediumRisk = s.riskScore > 30 && s.riskScore <= 70;
+            const isExpanded = expandedFraudCode === s.code;
+
+            const baseColor = isHighRisk 
+              ? "rose" 
+              : isMediumRisk 
+                ? "amber" 
+                : "emerald";
+
+            return (
+              <div 
+                key={s.code}
+                onClick={() => setExpandedFraudCode(isExpanded ? null : s.code)}
+                className={`rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden ${
+                  isExpanded 
+                    ? `bg-white dark:bg-slate-900 shadow-lg border-${baseColor}-400/50 dark:border-${baseColor}-500/40 ring-1 ring-${baseColor}-400/20` 
+                    : `bg-slate-50/80 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/10 hover:bg-white dark:hover:bg-white/[0.04]`
+                }`}
+              >
+                {/* Always Visible Header */}
+                <div className="p-5 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className={`size-12 rounded-xl flex shrink-0 items-center justify-center font-mono font-black text-lg border ${
+                      isHighRisk ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20" :
+                      isMediumRisk ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20" :
+                      "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                    }`}>
+                      {s.code}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-foreground text-sm sm:text-base line-clamp-1">{isAr ? s.regionAr : s.regionEn}</h4>
+                      <div className="text-[10px] text-muted-foreground font-mono uppercase mt-0.5 line-clamp-1">{s.typeEn}</div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full border ${
+                      isHighRisk ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20" :
+                      isMediumRisk ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20" :
+                      "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                    }`}>
+                      {s.riskScore}/100
+                    </span>
+                    <span className="text-[10px] font-semibold text-muted-foreground">{isAr ? "مؤشر الخطر" : "Risk Index"}</span>
+                  </div>
+                </div>
+
+                {/* Expandable Content Area */}
+                <div className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+                  <div className="overflow-hidden">
+                    <div className="p-5 pt-0 border-t border-slate-100 dark:border-white/5 mt-2 space-y-4">
+                      
+                      <div className="grid grid-cols-2 gap-4 pt-4">
+                        <div className="space-y-1">
+                          <span className="text-[10px] uppercase font-mono text-muted-foreground">{isAr ? "التصنيف" : "Classification"}</span>
+                          <div className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                            {isHighRisk ? <ShieldAlert className="size-3.5 text-rose-500 shrink-0" /> : <ShieldCheck className="size-3.5 text-emerald-500 shrink-0" />}
+                            <span className="line-clamp-2">{isAr ? s.typeAr : s.typeEn}</span>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[10px] uppercase font-mono text-muted-foreground">{isAr ? "التعرفة المتوقعة" : "Potential Tariff"}</span>
+                          <div className={`text-xs font-bold font-mono ${isHighRisk ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                            {s.rate}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className={`p-3 rounded-lg text-xs leading-relaxed border ${
+                        isHighRisk ? "bg-rose-50 dark:bg-rose-500/5 border-rose-100 dark:border-rose-500/10 text-rose-800 dark:text-rose-200" :
+                        isMediumRisk ? "bg-amber-50 dark:bg-amber-500/5 border-amber-100 dark:border-amber-500/10 text-amber-800 dark:text-amber-200" :
+                        "bg-emerald-50 dark:bg-emerald-500/5 border-emerald-100 dark:border-emerald-500/10 text-emerald-800 dark:text-emerald-200"
+                      }`}>
+                        {isAr ? s.warningAr : s.warningEn}
+                      </div>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onInspectCode(s.code);
+                        }}
+                        className="w-full btn-secondary py-2 text-xs"
+                      >
+                        {isAr ? `فحص ملف الكود الكامل (${s.code})` : `Inspect Full Dossier (${s.code})`}
+                      </button>
+
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

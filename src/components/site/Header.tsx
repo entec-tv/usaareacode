@@ -369,6 +369,23 @@ export function Header({ activeTab, onSelectTab }: HeaderProps) {
                       </>
                     );
 
+                    if (tool.id === "converter") {
+                      return (
+                        <Link
+                          key={tool.id}
+                          to="/converter"
+                          onClick={() => setToolsDropdownOpen(false)}
+                          className={`w-full flex items-start gap-2.5 p-2 rounded-xl transition-all text-left rtl:text-right cursor-pointer ${
+                            isActive
+                              ? "bg-primary/15 text-primary font-semibold"
+                              : "hover:bg-slate-100 dark:hover:bg-slate-800/70 text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {content}
+                        </Link>
+                      );
+                    }
+
                     if (isHomePage && onSelectTab) {
                       return (
                         <button

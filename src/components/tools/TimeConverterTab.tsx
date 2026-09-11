@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import {
   ArrowRightLeft,
   Calendar,
@@ -11,9 +11,14 @@ import {
   Sparkles,
   Sun,
   Timer,
+  Search,
+  ChevronDown,
+  Check,
+  Globe2,
 } from "lucide-react";
 import {
   LOCATIONS_CATALOG,
+  EXTENDED_LOCATIONS_CATALOG,
   DEFAULT_SOURCE_LOCATION,
   DEFAULT_TARGET_LOCATION,
   type LocationItem,
@@ -87,6 +92,148 @@ function LocationFlag({ code }: { code: string }) {
   return <span className="text-xs">🌐</span>;
 }
 
+function LocationCombobox({
+  value,
+  onChange,
+  isAr,
+  options,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  isAr: boolean;
+  options: typeof LOCATIONS_CATALOG;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedLocation = options.find((o) => o.id === value);
+  const formatLoc = (loc: typeof options[0]) => {
+    const name = isAr ? loc.nameAr : loc.nameEn;
+    const ctx = isAr ? (loc.regionAr || loc.countryAr) : (loc.regionEn || loc.countryEn);
+    const firstWord = name.split(" ")[0] || "";
+    if (!ctx || name.toLowerCase().includes(ctx.toLowerCase()) || ctx.toLowerCase().includes(firstWord.toLowerCase())) {
+      return name;
+    }
+    return isAr ? `${name} - ${ctx}` : `${name}, ${ctx}`;
+  };
+
+  const selectedLabel = selectedLocation ? formatLoc(selectedLocation) : (isAr ? "اختر مدينة أو ولاية..." : "Select location...");
+
+  const filteredOptions = useMemo(() => {
+    if (!searchQuery.trim()) {
+      // By default, show predefined locations
+      return LOCATIONS_CATALOG;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const matches = options.filter(
+      (opt) =>
+        opt.nameEn.toLowerCase().includes(query) ||
+        opt.nameAr.toLowerCase().includes(query) ||
+        opt.countryEn.toLowerCase().includes(query) ||
+        opt.countryAr.toLowerCase().includes(query)
+    );
+    // Limit to 50 results to prevent UI lag
+    return matches.slice(0, 50);
+  }, [searchQuery, options]);
+
+  const renderOption = (loc: typeof LOCATIONS_CATALOG[0]) => {
+    const label = formatLoc(loc);
+    const isSelected = loc.id === value;
+    return (
+      <button
+        key={loc.id}
+        type="button"
+        onClick={() => {
+          onChange(loc.id);
+          setIsOpen(false);
+          setSearchQuery("");
+        }}
+        className={`w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center justify-between transition-colors ${
+          isSelected ? "bg-primary/10 text-primary font-bold" : "hover:bg-muted text-foreground"
+        }`}
+      >
+        <span className="truncate">{label}</span>
+        {isSelected && <Check className="size-4 shrink-0" />}
+      </button>
+    );
+  };
+
+  const renderGroup = (label: string, items: typeof LOCATIONS_CATALOG) => {
+    if (items.length === 0) return null;
+    return (
+      <div key={label} className="mb-1">
+        <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/30">
+          {label}
+        </div>
+        <div className="p-1">
+          {items.map(renderOption)}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full flex items-center justify-between rounded-2xl bg-card/80 border border-border/80 px-4 py-3.5 text-sm font-semibold focus:outline-none focus:border-primary/60 cursor-pointer ${value ? "text-foreground" : "text-muted-foreground"}`}
+      >
+        <span className="truncate">{selectedLabel}</span>
+        <ChevronDown className={`size-4 opacity-50 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-2 bg-card border border-border rounded-xl shadow-xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="p-2 border-b border-border/50 bg-card/95 backdrop-blur-sm">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={isAr ? "ابحث عن مدينة أو ولاية..." : "Search city or state..."}
+                className="w-full bg-muted/50 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
+                autoFocus
+              />
+            </div>
+          </div>
+          <div className="overflow-y-auto max-h-60 p-0">
+            {filteredOptions.length === 0 ? (
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                {isAr ? "لا توجد نتائج" : "No results found"}
+              </div>
+            ) : searchQuery ? (
+              <div className="p-1">
+                {filteredOptions.map((loc) => renderOption(loc))}
+              </div>
+            ) : (
+              <>
+                {renderGroup(isAr ? "🇺🇸 الولايات والمدن الأمريكية" : "United States (States & Metros)", filteredOptions.filter(l => l.category === "us_state"))}
+                {renderGroup(isAr ? "🇪🇬 العواصم العربية والشرق الأوسط" : "Arab Capitals & Middle East", filteredOptions.filter(l => l.category === "arab"))}
+                {renderGroup(isAr ? "🇨🇦 المقاطعات الكندية" : "Canada", filteredOptions.filter(l => l.category === "canada"))}
+                {renderGroup(isAr ? "🌍 العواصم العالمية الكبرى" : "Global Capitals", filteredOptions.filter(l => l.category === "world"))}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function TimeConverterTab({
   t,
   isAr,
@@ -96,21 +243,23 @@ export function TimeConverterTab({
   isAr: boolean;
   onNavigateLookup?: (q: string) => void;
 }) {
-  // 1. Locations: Default Source = Cairo, Default Target = New York
-  const [sourceId, setSourceId] = useState(DEFAULT_SOURCE_LOCATION.id);
-  const [targetId, setTargetId] = useState(DEFAULT_TARGET_LOCATION.id);
+  // 1. Locations: Default Empty
+  const [sourceId, setSourceId] = useState("");
+  const [targetId, setTargetId] = useState("");
 
   // 2. Date & Time state (Default: Today & 06:00 as requested in example)
   const todayStr = useMemo(() => new Date().toISOString().split("T")[0] ?? "2026-09-04", []);
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
   const [selectedTime, setSelectedTime] = useState("06:00");
 
-  const sourceLocation: LocationItem = useMemo(
-    () => LOCATIONS_CATALOG.find((l) => l.id === sourceId) ?? DEFAULT_SOURCE_LOCATION,
+  // Retrieve exact definitions for dual-panel synchronization
+  // Note: We search in EXTENDED_LOCATIONS_CATALOG now
+  const sourceLocation = useMemo(
+    () => EXTENDED_LOCATIONS_CATALOG.find((l) => l.id === sourceId),
     [sourceId]
   );
-  const targetLocation: LocationItem = useMemo(
-    () => LOCATIONS_CATALOG.find((l) => l.id === targetId) ?? DEFAULT_TARGET_LOCATION,
+  const targetLocation = useMemo(
+    () => EXTENDED_LOCATIONS_CATALOG.find((l) => l.id === targetId),
     [targetId]
   );
 
@@ -132,26 +281,24 @@ export function TimeConverterTab({
   };
 
   // 5. Calculations
-  const conversion = useMemo(
-    () =>
-      convertCrossTimezone(
-        sourceLocation.timezone,
-        targetLocation.timezone,
-        selectedDate,
-        selectedTime
-      ),
-    [sourceLocation.timezone, targetLocation.timezone, selectedDate, selectedTime]
-  );
+  const conversion = useMemo(() => {
+    if (!sourceLocation || !targetLocation) return null;
+    return convertCrossTimezone(
+      sourceLocation.timezone,
+      targetLocation.timezone,
+      selectedDate,
+      selectedTime
+    );
+  }, [sourceLocation, targetLocation, selectedDate, selectedTime]);
 
-  const timeline = useMemo(
-    () =>
-      generate24HourTimeline(
-        sourceLocation.timezone,
-        targetLocation.timezone,
-        selectedDate
-      ),
-    [sourceLocation.timezone, targetLocation.timezone, selectedDate]
-  );
+  const timeline = useMemo(() => {
+    if (!sourceLocation || !targetLocation) return [];
+    return generate24HourTimeline(
+      sourceLocation.timezone,
+      targetLocation.timezone,
+      selectedDate
+    );
+  }, [sourceLocation, targetLocation, selectedDate]);
 
   // Current slider hour (0..23)
   const currentHour = parseInt(selectedTime.split(":")[0] || "6", 10);
@@ -206,48 +353,18 @@ export function TimeConverterTab({
             <label className="text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <span className="size-2 rounded-full bg-cyan-400" />
               <span>{isAr ? "المدينة الأولى (المصدر)" : "Origin Location (Source)"}</span>
-              {sourceLocation.id === "cairo" && (
+              {sourceLocation?.id === "cairo" && (
                 <span className="text-[10px] px-1.5 py-0.2 rounded bg-cyan-500/15 text-cyan-300 font-sans">
                   {isAr ? "افتراضي" : "Default"}
                 </span>
               )}
             </label>
-            <div className="relative">
-              <select
-                value={sourceId}
-                onChange={(e) => setSourceId(e.target.value)}
-                className="w-full appearance-none rounded-2xl bg-card/80 border border-border/80 px-4 py-3.5 text-sm font-semibold text-foreground focus:outline-none focus:border-primary/60 cursor-pointer pr-10"
-              >
-                <optgroup label={isAr ? "🇪🇬 العواصم العربية والشرق الأوسط" : "Arab Capitals & Middle East"}>
-                  {LOCATIONS_CATALOG.filter((l) => l.category === "arab").map((loc) => (
-                    <option key={`src-${loc.id}`} value={loc.id}>
-                      {isAr ? `${loc.nameAr} (${loc.countryAr})` : `${loc.nameEn}, ${loc.countryEn}`}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label={isAr ? "🇺🇸 الولايات والمدن الأمريكية" : "United States (States & Metros)"}>
-                  {LOCATIONS_CATALOG.filter((l) => l.category === "us_state").map((loc) => (
-                    <option key={`src-${loc.id}`} value={loc.id}>
-                      {isAr ? `${loc.nameAr} - ${loc.regionAr}` : `${loc.nameEn} (${loc.regionEn})`}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label={isAr ? "🇨🇦 المقاطعات الكندية" : "Canada"}>
-                  {LOCATIONS_CATALOG.filter((l) => l.category === "canada").map((loc) => (
-                    <option key={`src-${loc.id}`} value={loc.id}>
-                      {isAr ? `${loc.nameAr} (${loc.countryAr})` : `${loc.nameEn}, ${loc.countryEn}`}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label={isAr ? "🌍 العواصم العالمية الكبرى" : "Global Capitals"}>
-                  {LOCATIONS_CATALOG.filter((l) => l.category === "world").map((loc) => (
-                    <option key={`src-${loc.id}`} value={loc.id}>
-                      {isAr ? `${loc.nameAr} (${loc.countryAr})` : `${loc.nameEn}, ${loc.countryEn}`}
-                    </option>
-                  ))}
-                </optgroup>
-              </select>
-            </div>
+            <LocationCombobox
+              value={sourceId}
+              onChange={(val) => setSourceId(val)}
+              isAr={isAr}
+              options={EXTENDED_LOCATIONS_CATALOG}
+            />
           </div>
 
           {/* 2. SWAP BUTTON (زر التبديل التفاعلي بين المدينتين) */}
@@ -256,7 +373,7 @@ export function TimeConverterTab({
               onClick={handleSwapLocations}
               title={isAr ? "تبديل الموقعين" : "Swap Locations"}
               aria-label="Swap Locations"
-              className="group size-12 sm:size-14 rounded-2xl bg-gradient-to-br from-cyan-500/20 via-primary/10 to-indigo-600/20 hover:from-cyan-500/30 hover:to-indigo-600/30 border border-cyan-400/40 hover:border-cyan-400 text-cyan-300 hover:text-white flex items-center justify-center shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/25 transition-all duration-300 cursor-pointer active:scale-95"
+              className="group size-12 sm:size-14 rounded-full bg-gradient-to-br from-cyan-500/20 via-primary/10 to-indigo-600/20 hover:from-cyan-500/30 hover:to-indigo-600/30 border border-cyan-400/40 hover:border-cyan-400 text-cyan-300 hover:text-white flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.15)] hover:shadow-[0_0_25px_rgba(34,211,238,0.3)] transition-all duration-300 cursor-pointer active:scale-95"
             >
               <ArrowRightLeft className="size-5 transition-transform duration-300 group-hover:rotate-180" />
             </button>
@@ -267,136 +384,90 @@ export function TimeConverterTab({
             <label className="text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <span className="size-2 rounded-full bg-emerald-400" />
               <span>{isAr ? "المدينة الثانية (الهدف)" : "Target Destination"}</span>
-              {targetLocation.id === "new-york" && (
+              {targetLocation?.id === "new-york" && (
                 <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-300 font-sans">
                   {isAr ? "افتراضي" : "Default"}
                 </span>
               )}
             </label>
-            <div className="relative">
-              <select
-                value={targetId}
-                onChange={(e) => setTargetId(e.target.value)}
-                className="w-full appearance-none rounded-2xl bg-card/80 border border-border/80 px-4 py-3.5 text-sm font-semibold text-foreground focus:outline-none focus:border-primary/60 cursor-pointer pr-10"
-              >
-                <optgroup label={isAr ? "🇺🇸 الولايات والمدن الأمريكية" : "United States (States & Metros)"}>
-                  {LOCATIONS_CATALOG.filter((l) => l.category === "us_state").map((loc) => (
-                    <option key={`tgt-${loc.id}`} value={loc.id}>
-                      {isAr ? `${loc.nameAr} - ${loc.regionAr}` : `${loc.nameEn} (${loc.regionEn})`}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label={isAr ? "🇪🇬 العواصم العربية والشرق الأوسط" : "Arab Capitals & Middle East"}>
-                  {LOCATIONS_CATALOG.filter((l) => l.category === "arab").map((loc) => (
-                    <option key={`tgt-${loc.id}`} value={loc.id}>
-                      {isAr ? `${loc.nameAr} (${loc.countryAr})` : `${loc.nameEn}, ${loc.countryEn}`}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label={isAr ? "🇨🇦 المقاطعات الكندية" : "Canada"}>
-                  {LOCATIONS_CATALOG.filter((l) => l.category === "canada").map((loc) => (
-                    <option key={`tgt-${loc.id}`} value={loc.id}>
-                      {isAr ? `${loc.nameAr} (${loc.countryAr})` : `${loc.nameEn}, ${loc.countryEn}`}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label={isAr ? "🌍 العواصم العالمية الكبرى" : "Global Capitals"}>
-                  {LOCATIONS_CATALOG.filter((l) => l.category === "world").map((loc) => (
-                    <option key={`tgt-${loc.id}`} value={loc.id}>
-                      {isAr ? `${loc.nameAr} (${loc.countryAr})` : `${loc.nameEn}, ${loc.countryEn}`}
-                    </option>
-                  ))}
-                </optgroup>
-              </select>
-            </div>
+            <LocationCombobox
+              value={targetId}
+              onChange={(val) => setTargetId(val)}
+              isAr={isAr}
+              options={EXTENDED_LOCATIONS_CATALOG}
+            />
           </div>
         </div>
 
-        {/* =========================================================================
-            TIME & DATE INPUTS + QUICK PRESETS
-        ========================================================================= */}
-        <div className="pt-4 border-t border-border/60 flex flex-wrap items-center justify-between gap-4">
+        {sourceLocation && targetLocation && conversion && (
+          <>
+            {/* =========================================================================
+                TIME & DATE INPUTS + QUICK PRESETS
+            ========================================================================= */}
+        <div className="pt-5 border-t border-border/50 flex flex-wrap items-center justify-between gap-5">
           {/* Time & Date Pickers */}
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-2 bg-card/60 border border-border/80 px-3.5 py-2 rounded-xl">
-              <Clock className="size-4 text-primary" />
-              <span className="text-xs font-medium text-muted-foreground">
-                {isAr ? "الوقت في" : "Time in"} {isAr ? sourceLocation.nameAr : sourceLocation.nameEn}:
+            <div className="flex items-center gap-2 bg-card/60 border border-border/60 px-4 py-2.5 rounded-xl shadow-sm backdrop-blur-md transition-colors hover:border-primary/50 relative">
+              <Clock className="size-4 text-cyan-500 dark:text-cyan-400" />
+              <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+                {isAr ? "الوقت في" : "Time in"} <span className="text-foreground">{isAr ? sourceLocation.nameAr : sourceLocation.nameEn}</span>:
               </span>
               <input
                 type="time"
                 value={selectedTime}
                 onChange={(e) => setSelectedTime(e.target.value)}
-                className="bg-transparent text-sm font-mono font-bold text-foreground focus:outline-none cursor-pointer"
+                className="bg-transparent text-sm font-mono font-bold text-foreground focus:outline-none cursor-pointer [&::-webkit-calendar-picker-indicator]:hidden w-full"
               />
             </div>
 
-            <div className="flex items-center gap-2 bg-card/60 border border-border/80 px-3.5 py-2 rounded-xl">
-              <Calendar className="size-4 text-primary" />
+            <div className="flex items-center gap-2 bg-card/60 border border-border/60 px-4 py-2.5 rounded-xl shadow-sm backdrop-blur-md transition-colors hover:border-primary/50 relative">
+              <Calendar className="size-4 text-cyan-500 dark:text-cyan-400" />
               <input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="bg-transparent text-xs font-medium text-foreground focus:outline-none cursor-pointer"
+                className="bg-transparent text-xs font-medium text-foreground focus:outline-none cursor-pointer [&::-webkit-calendar-picker-indicator]:hidden w-full"
               />
+            </div>
+
+            {/* LIVE TARGET RESULT DISPLAY (NO SCROLL NEEDED) */}
+            <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-5 py-2.5 rounded-xl shadow-[0_0_15px_rgba(16,185,129,0.15)] backdrop-blur-md transition-all animate-in fade-in zoom-in-95 duration-300">
+              <Timer className="size-4 text-emerald-400 animate-pulse" />
+              <span className="text-xs font-medium text-emerald-100/70">
+                {isAr ? "يساوي في" : "Equals in"} <span className="text-emerald-50 font-bold">{isAr ? targetLocation.nameAr : targetLocation.nameEn}</span>:
+              </span>
+              <span className="text-base font-mono font-black text-emerald-400 ml-1 tracking-tight">
+                {conversion.target.time12}
+              </span>
+              <span className="text-[10px] text-emerald-400/80 font-bold ml-1.5 bg-emerald-400/15 px-1.5 py-0.5 rounded uppercase">
+                {conversion.hourDiff > 0 ? "+" : ""}{conversion.hourDiff}h
+              </span>
             </div>
           </div>
 
-          {/* Quick Preset Buttons */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+          {/* Quick Preset Buttons (Segmented Control) */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
             <span className="text-[10px] font-mono uppercase font-semibold text-muted-foreground mr-1 shrink-0">
               {isAr ? "أوقات شائعة:" : "Presets:"}
             </span>
-            <button
-              onClick={() => setSelectedTime("06:00")}
-              className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border shrink-0 ${
-                selectedTime === "06:00"
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card hover:bg-card/80 border-border text-foreground/80"
-              }`}
-            >
-              06:00 AM
-            </button>
-            <button
-              onClick={() => setSelectedTime("09:00")}
-              className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border shrink-0 ${
-                selectedTime === "09:00"
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card hover:bg-card/80 border-border text-foreground/80"
-              }`}
-            >
-              09:00 AM
-            </button>
-            <button
-              onClick={() => setSelectedTime("12:00")}
-              className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border shrink-0 ${
-                selectedTime === "12:00"
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card hover:bg-card/80 border-border text-foreground/80"
-              }`}
-            >
-              12:00 PM
-            </button>
-            <button
-              onClick={() => setSelectedTime("18:00")}
-              className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border shrink-0 ${
-                selectedTime === "18:00"
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card hover:bg-card/80 border-border text-foreground/80"
-              }`}
-            >
-              06:00 PM
-            </button>
-            <button
-              onClick={() => setSelectedTime("20:00")}
-              className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border shrink-0 ${
-                selectedTime === "20:00"
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card hover:bg-card/80 border-border text-foreground/80"
-              }`}
-            >
-              08:00 PM
-            </button>
+            <div className="flex bg-muted/40 p-1 rounded-xl border border-border/50 shadow-inner">
+              {["06:00", "09:00", "12:00", "18:00", "20:00"].map((time) => {
+                const label = time === "18:00" ? "06:00 PM" : time === "20:00" ? "08:00 PM" : time === "12:00" ? "12:00 PM" : `${time} AM`;
+                return (
+                  <button
+                    key={time}
+                    onClick={() => setSelectedTime(time)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                      selectedTime === time
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -418,9 +489,9 @@ export function TimeConverterTab({
             step="1"
             value={currentHour}
             onChange={(e) => handleSliderChange(parseInt(e.target.value, 10))}
-            className="w-full accent-cyan-400 h-2 bg-slate-800 rounded-lg cursor-pointer transition-all"
+            className="w-full accent-cyan-500 dark:accent-cyan-400 h-2.5 bg-muted/80 rounded-lg cursor-pointer transition-all shadow-inner border border-border/50"
           />
-          <div className="flex justify-between text-[10px] font-mono text-muted-foreground px-1">
+          <div className="flex justify-between text-[10px] font-mono text-muted-foreground px-1 pt-0.5">
             <span>12 AM</span>
             <span>3 AM</span>
             <span>6 AM</span>
@@ -432,12 +503,16 @@ export function TimeConverterTab({
             <span>11 PM</span>
           </div>
         </div>
-      </div>
+        </>
+      )}
+    </div>
 
-      {/* =========================================================================
-          DUAL LUXURY TIME CARDS (RESULTS DISPLAY)
-      ========================================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 items-stretch">
+      {sourceLocation && targetLocation && conversion ? (
+        <>
+          {/* =========================================================================
+              DUAL LUXURY TIME CARDS (RESULTS DISPLAY)
+          ========================================================================= */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 items-stretch">
         {/* CARD 1: ORIGIN / SOURCE (e.g. CAIRO) */}
         <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-b from-slate-900/90 via-slate-900/75 to-[#0b101d]/90 backdrop-blur-2xl border border-white/[0.12] hover:border-cyan-400/40 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.4)] transition-all duration-300 flex flex-col justify-between">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
@@ -740,6 +815,20 @@ export function TimeConverterTab({
           </span>
         </div>
       </div>
+      </>
+      ) : (
+        <div className="flex flex-col items-center justify-center p-12 text-center border border-border/40 border-dashed rounded-3xl bg-card/20 shadow-sm min-h-[300px]">
+          <Globe2 className="size-16 text-muted-foreground/30 mb-4 animate-pulse" />
+          <h3 className="text-xl font-bold text-foreground mb-2">
+            {isAr ? "أداة تحويل التوقيت" : "Cross-Timezone Converter"}
+          </h3>
+          <p className="text-muted-foreground max-w-md mx-auto text-sm">
+            {isAr
+              ? "الرجاء اختيار المدينة المصدر والمدينة الهدف من القوائم أعلاه لعرض توافق الأوقات ونوافذ الاتصال القانونية المتاحة."
+              : "Please select both the Origin and Target locations from the dropdowns above to view cross-timezone synchronization and TCPA legal calling windows."}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

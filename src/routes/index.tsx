@@ -71,7 +71,7 @@ import {
 import { exportCsv, exportJson, exportXlsx, copyTable } from "@/lib/exporters";
 import { parseUploadedFile, normalizeEasternArabicNumerals } from "@/lib/file-parser";
 import { useI18n } from "@/lib/i18n";
-import { TimeConverterTab } from "@/components/tools/TimeConverterTab";
+
 import { BulkExtractorTab } from "@/components/tools/BulkExtractorTab";
 const InteractiveTelecomMap = lazy(() => import("@/components/map/InteractiveTelecomMap").then(m => ({ default: m.InteractiveTelecomMap })));
 const AreaCodeLeafletMap = lazy(() => import("@/components/map/AreaCodeLeafletMap").then(m => ({ default: m.AreaCodeLeafletMap })));
@@ -91,7 +91,7 @@ export const Route = createFileRoute("/")({
   component: IndexPage,
 });
 
-type TabType = "lookup" | "browse" | "bulk" | "map" | "compare" | "converter" | "saved";
+type TabType = "lookup" | "browse" | "bulk" | "map" | "compare" | "saved";
 
 const TIMEZONES_LIST = [
   { id: "ALL", label: "All Timezones", sampleCity: "Nationwide Coverage" },
@@ -612,7 +612,7 @@ function IndexPage() {
       setActiveTab("lookup");
     }
 
-    const validTabs: TabType[] = ["lookup", "browse", "bulk", "map", "compare", "converter", "saved"];
+    const validTabs: TabType[] = ["lookup", "browse", "bulk", "map", "compare", "saved"];
     if (tabParam && validTabs.includes(tabParam)) {
       setActiveTab(tabParam);
       setTimeout(() => {
@@ -625,8 +625,9 @@ function IndexPage() {
     }
   }, []);
 
-  const handleSelectTab = (tab: TabType) => {
-    setActiveTab(tab);
+  const handleSelectTab = (tab: any) => {
+    if (tab === "converter") return; // Handled by header link
+    setActiveTab(tab as TabType);
     logEngagementEvent({ action: "tab_switch", target: tab });
     if (tab !== "lookup") {
       setTimeout(() => {
@@ -1555,8 +1556,7 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
                 <EnterpriseEditorialSplit
                   onInspectCode={handleSearch}
                   onNavigateToConverter={() => {
-                    setActiveTab("converter");
-                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    window.location.href = "/converter";
                   }}
                   onNavigateToBulk={() => {
                     setActiveTab("bulk");
@@ -2459,12 +2459,6 @@ Caribbean Fraud Risk: ${item.risk ? "YES - HIGH RISK" : "No"}`;
           </div>
         )}
 
-        {/* =========================================================================
-            TAB: WORLD & US TIME CONVERTER
-        ========================================================================= */}
-        {activeTab === "converter" && (
-          <TimeConverterTab t={t} isAr={isAr} onNavigateLookup={handleSearch} />
-        )}
 
         {/* =========================================================================
             TAB 6: FAVORITES & RECENTS

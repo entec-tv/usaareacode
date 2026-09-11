@@ -84,7 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         {
           name: "keywords",
           content:
-            "area codes, phone intelligence, NANPA lookup, NPA NXX, TCPA calling window, timezone converter, US area code, Canada area code, telecom carrier lookup, bulk phone cleanser, robocall scam alert",
+            "area codes, phone intelligence, NANPA lookup, NPA NXX, TCPA calling window, timezone converter, US area code, Canada area code, telecom carrier lookup, bulk phone cleanser, robocall scam alert, reverse phone lookup, phone number verification, local area codes, dial codes, phone code finder, carrier identification, line type check, VoIP detection, الاستعلام عن أرقام الهواتف, كود المنطقة, التحقق من رقم الهاتف, مفاتيح الدول, أرقام الهواتف الأمريكية, كشف المتصل",
         },
         { name: "author", content: `${COMPANY.name} (${COMPANY.legalName})` },
         { name: "robots", content: "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" },

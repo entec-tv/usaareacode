@@ -197,7 +197,6 @@ export function localTime(timezone: string, now: Date = new Date()): LocalTime {
       timeZone: timezone,
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
       hour12: true,
     });
     const dateFmt = new Intl.DateTimeFormat("en-US", {

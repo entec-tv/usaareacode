@@ -638,6 +638,35 @@ export const LOCATIONS_CATALOG: LocationItem[] = [
   },
 ];
 
+import cityTimezones from "city-timezones";
+
+// Pre-compute normalized predefined names for fast lookup
+const predefinedNames = new Set(
+  LOCATIONS_CATALOG.map((l) => l.nameEn.toLowerCase())
+);
+
+// Map external city-timezones data to LocationItem structure
+const externalLocations: LocationItem[] = cityTimezones.cityMapping
+  .filter((c: any) => c.timezone && !predefinedNames.has(c.city.toLowerCase()))
+  .map((c: any, index: number) => ({
+    id: `ext-${c.iso2}-${c.city_ascii.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()}-${index}`,
+    nameEn: c.city,
+    nameAr: c.city, // Fallback to English for external cities
+    regionEn: c.province || c.country,
+    regionAr: c.province || c.country, // Fallback
+    countryCode: c.iso2 || "US",
+    countryEn: c.country,
+    countryAr: c.country, // Fallback
+    timezone: c.timezone,
+    isUS: c.iso2 === "US",
+    category: "world",
+  }));
+
+export const EXTENDED_LOCATIONS_CATALOG: LocationItem[] = [
+  ...LOCATIONS_CATALOG,
+  ...externalLocations,
+];
+
 export const DEFAULT_SOURCE_LOCATION: LocationItem =
   LOCATIONS_CATALOG.find((l) => l.isDefaultSource) ?? LOCATIONS_CATALOG[0]!;
 
